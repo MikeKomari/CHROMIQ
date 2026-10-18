@@ -1,4 +1,4 @@
-import { Globe2, LoaderCircle, Search, X } from "lucide-react";
+import { Globe2, LoaderCircle, Search, Wand2, X } from "lucide-react";
 import { useState } from "react";
 
 type Inspection = {
@@ -11,7 +11,13 @@ type Inspection = {
   note: string;
 };
 
-export function InspectModal({ close }: { close: () => void }) {
+export function InspectModal({
+  close,
+  restyle,
+}: {
+  close: () => void;
+  restyle: (url: string) => void;
+}) {
   const [url, setUrl] = useState("");
   const [result, setResult] = useState<Inspection | null>(null);
   const [error, setError] = useState("");
@@ -25,7 +31,16 @@ export function InspectModal({ close }: { close: () => void }) {
       );
       const data = await response.json();
       if (!response.ok)
-        throw new Error(data.error || "The URL could not be inspected.");
+        throw new Error(
+          [
+            data.error || "The URL could not be inspected.",
+            Number(response.headers.get("Retry-After")) > 0
+              ? `Try again in ${Math.ceil(Number(response.headers.get("Retry-After")))} seconds.`
+              : "",
+          ]
+            .filter(Boolean)
+            .join(" "),
+        );
       setResult(data);
     } catch (reason) {
       setError(
@@ -90,6 +105,9 @@ export function InspectModal({ close }: { close: () => void }) {
             </div>
             <h3>{result.title || "Untitled page"}</h3>
             <p>{result.note}</p>
+            <button className="primary-button" onClick={() => restyle(result.url)}>
+              <Wand2 size={15} /> Restyle this page
+            </button>
             <div className="inspection-columns">
               <div>
                 <span className="eyebrow">Headings</span>

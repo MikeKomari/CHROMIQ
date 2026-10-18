@@ -21,10 +21,10 @@ import {
   Link2,
   Lock,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { motion, MotionConfig } from "motion/react";
 import { starters } from "@/data/workspace";
-import { hexToHsl } from "@/lib/colors";
+import { hexToHsl, hslToHex } from "@/lib/colors";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { CanvasArea } from "@/components/workspace/canvas-area";
 import { ExportModal } from "@/components/workspace/export-modal";
@@ -40,6 +40,10 @@ import { VersionModal } from "@/components/workspace/version-modal";
 import { ImportModal } from "@/components/workspace/import-modal";
 import { CommandPalette } from "@/components/workspace/command-palette";
 import { InspectModal } from "@/components/workspace/inspect-modal";
+import {
+  RestyleView,
+  type RestyleRequest,
+} from "@/components/workspace/restyle/restyle-view";
 import { SettingsModal } from "@/components/workspace/settings-modal";
 
 export function Workspace() {
@@ -52,6 +56,8 @@ export function Workspace() {
   const [showSettings, setShowSettings] = useState(false);
   const [showVersions, setShowVersions] = useState(false);
   const [shared, setShared] = useState(false);
+  const [restyleRequest, setRestyleRequest] = useState<RestyleRequest | null>(null);
+  const consumeRestyleRequest = useCallback(() => setRestyleRequest(null), []);
   const share = () => {
     workspace.createShareLink();
     setShared(true);
@@ -94,6 +100,21 @@ export function Workspace() {
     readOnly,
   } = workspace;
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const target = params.get("restyle");
+    if (!target) return;
+    setView("restyle");
+    setRestyleRequest({ url: target, id: Date.now() });
+    params.delete("restyle");
+    const query = params.toString();
+    window.history.replaceState(
+      null,
+      "",
+      window.location.pathname + (query ? `?${query}` : "") + window.location.hash,
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
@@ -117,7 +138,7 @@ export function Workspace() {
   const selectStarter = (starter: (typeof starters)[number]) => {
     updateTokens({
       accent: starter.accent,
-      accentSoft: hexToHsl(starter.accent).l > 65 ? "#f0f4bf" : "#f4c9bf",
+      accentSoft: hslToHex(hexToHsl(starter.accent).h, 45, 86),
     });
     setActiveStarter(starter.name);
   };
@@ -201,6 +222,17 @@ export function Workspace() {
           openSettings={() => setShowSettings(true)}
           openVersions={() => setShowVersions(true)}
         />
+        {view === "restyle" ? (
+          <RestyleView
+            tokens={tokens}
+            viewport={viewport}
+            setViewport={setViewport}
+            customWidth={customWidth}
+            setView={setView}
+            request={restyleRequest}
+            consumeRequest={consumeRestyleRequest}
+          />
+        ) : (
         <CanvasArea
           mode={mode}
           view={view}
@@ -225,6 +257,7 @@ export function Workspace() {
           setShowImport={setShowImport}
           setShowSnapshots={setShowSnapshots}
         />
+        )}
         <motion.aside className="sidebar inspector" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3, delay: 0.15, ease: "easeOut" }}>
           <div className="inspector-top">
             <div>
@@ -358,7 +391,16 @@ export function Workspace() {
           close={() => setShowImport(false)}
         />
       )}
-      {showInspect && <InspectModal close={() => setShowInspect(false)} />}
+      {showInspect && (
+        <InspectModal
+          close={() => setShowInspect(false)}
+          restyle={(url) => {
+            setRestyleRequest({ url, id: Date.now() });
+            setView("restyle");
+            setShowInspect(false);
+          }}
+        />
+      )}
       {showSettings && (
         <SettingsModal
           settings={workspace.settings}

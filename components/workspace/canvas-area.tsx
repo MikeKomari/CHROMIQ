@@ -3,6 +3,7 @@ import {
   Bookmark,
   Eye,
   FileInput,
+  Globe2,
   Grid2X2,
   Redo2,
   Undo2,
@@ -85,6 +86,12 @@ export function CanvasArea({
           >
             <Grid2X2 size={14} /> Compare
           </button>
+          <button
+            className={view === "restyle" ? "active" : ""}
+            onClick={() => setView("restyle")}
+          >
+            <Globe2 size={14} /> Restyle
+          </button>
         </div>
         <div className="toolbar-actions">
           <label className="toolbar-select">
@@ -97,8 +104,11 @@ export function CanvasArea({
               aria-label="Preview surface"
             >
               <option value="editorial">Editorial</option>
+              <option value="saas">SaaS landing</option>
               <option value="dashboard">Dashboard</option>
               <option value="commerce">Commerce</option>
+              <option value="docs">Docs</option>
+              <option value="specimen">Type specimen</option>
             </select>
           </label>
           <label className="toolbar-select compact-select">

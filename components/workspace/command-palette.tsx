@@ -1,5 +1,7 @@
-import { Command, Download, Palette, Search, Sun, X } from "lucide-react";
+import { Command, Contrast, Download, Palette, Search, Sun, X, ZoomIn, ZoomOut } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useContrast } from "@/hooks/use-contrast";
+import { UI_SCALES, useUiScale } from "@/hooks/use-ui-scale";
 
 export function CommandPalette({
   randomize,
@@ -19,6 +21,12 @@ export function CommandPalette({
   close: () => void;
 }) {
   const [query, setQuery] = useState("");
+  const [contrast, setContrast] = useContrast();
+  const [uiScale, setUiScale] = useUiScale();
+  const stepScale = (step: number) => {
+    const next = UI_SCALES[UI_SCALES.indexOf(uiScale) + step];
+    if (next) setUiScale(next);
+  };
   const actions = [
     {
       label: "Randomize color direction",
@@ -42,6 +50,21 @@ export function CommandPalette({
       run: openInspect,
     },
     { label: "Export system", icon: <Download size={15} />, run: openExport },
+    {
+      label: "Toggle high contrast",
+      icon: <Contrast size={15} />,
+      run: () => setContrast(contrast === "high" ? "comfort" : "high"),
+    },
+    {
+      label: "Increase interface text",
+      icon: <ZoomIn size={15} />,
+      run: () => stepScale(1),
+    },
+    {
+      label: "Decrease interface text",
+      icon: <ZoomOut size={15} />,
+      run: () => stepScale(-1),
+    },
   ];
   const filtered = actions.filter((action) =>
     action.label.toLowerCase().includes(query.toLowerCase()),

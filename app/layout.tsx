@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./surfaces.css";
+import "./landing.css";
+import "./restyle.css";
+import { contrastBootScript, uiScaleBootScript } from "@/lib/contrast-boot";
 
 export const metadata: Metadata = {
   title: "PRISM: visual systems, made tangible",
@@ -11,7 +15,14 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" data-contrast="comfort" data-ui-scale="default" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: contrastBootScript + uiScaleBootScript,
+          }}
+        />
+      </head>
       <body>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link

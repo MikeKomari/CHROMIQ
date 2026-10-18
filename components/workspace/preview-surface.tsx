@@ -1,5 +1,21 @@
 import type { Mode, PreviewSurfaceKind, Tokens } from "@/types/workspace";
-import { MoreHorizontal } from "lucide-react";
+import {
+  CommerceSurface,
+  DashboardSurface,
+  DocsSurface,
+  EditorialSurface,
+  SaasSurface,
+  SpecimenSurface,
+} from "@/components/workspace/surfaces";
+
+const surfaces = {
+  editorial: EditorialSurface,
+  saas: SaasSurface,
+  dashboard: DashboardSurface,
+  commerce: CommerceSurface,
+  docs: DocsSurface,
+  specimen: SpecimenSurface,
+};
 
 export function PreviewSurface({
   tokens,
@@ -13,44 +29,11 @@ export function PreviewSurface({
   surface: PreviewSurfaceKind;
 }) {
   const light = mode === "light";
-  const content = {
-    editorial: {
-      kicker: variant === "b" ? "Direction 02" : "A quieter way forward",
-      title: (
-        <>
-          Make room
-          <br />
-          <em>for the good stuff.</em>
-        </>
-      ),
-      lede: "A thoughtful toolkit for teams shaping products with clarity, character, and a little more breathing room.",
-    },
-    dashboard: {
-      kicker: "System pulse / 08:42",
-      title: (
-        <>
-          See the signal
-          <br />
-          <em>through the noise.</em>
-        </>
-      ),
-      lede: "A calm command center for teams making decisions with the right context in view.",
-    },
-    commerce: {
-      kicker: "Objects with intent",
-      title: (
-        <>
-          Make it
-          <br />
-          <em>worth keeping.</em>
-        </>
-      ),
-      lede: "A warmer storefront language for products that deserve attention beyond the first scroll.",
-    },
-  }[surface];
+  const Surface = surfaces[surface] ?? EditorialSurface;
+  const kind = surface in surfaces ? surface : "editorial";
   return (
     <div
-      className={`design-preview ${light ? "light-preview" : "dark-preview"} surface-${surface}`}
+      className={`design-preview ${light ? "light-preview" : "dark-preview"} surface-${kind}`}
       style={
         {
           "--preview-accent": tokens.accent,
@@ -66,68 +49,16 @@ export function PreviewSurface({
           "--preview-border": `${tokens.borderWidth}px`,
           "--preview-shadow": tokens.shadow,
           "--preview-motion": `${tokens.motion}ms`,
+          "--preview-success": tokens.success,
+          "--preview-warning": tokens.warning,
+          "--preview-danger": tokens.danger,
+          "--preview-paper": tokens.paper,
+          "--preview-line": tokens.line,
         } as React.CSSProperties
       }
     >
-      <div className="preview-header">
-        <div className="preview-logo">
-          <span className="preview-logo-mark" /> NORTHSTAR <small>studio</small>
-        </div>
-        <nav>
-          <span>Work</span>
-          <span>About</span>
-          <span>Notes</span>
-        </nav>
-        <button className="preview-menu" aria-label="Menu">
-          <MoreHorizontal size={15} />
-        </button>
-      </div>
-      <div className="preview-body">
-        <div className="preview-kicker">
-          <span className="kicker-line" /> {content.kicker}
-        </div>
-        <h2>{content.title}</h2>
-        <p className="preview-lede">{content.lede}</p>
-        <div className="preview-cta-row">
-          <button className="preview-cta">
-            Explore the system <span>↗</span>
-          </button>
-          <span className="preview-caption">
-            SCROLL TO BEGIN
-            <br />
-            <b>02 / 08</b>
-          </span>
-        </div>
-        <div className="preview-cards">
-          <div className="preview-card card-main">
-            <span className="card-index">01</span>
-            <strong>
-              Clarity
-              <br />
-              over noise.
-            </strong>
-            <span className="card-arrow">↗</span>
-          </div>
-          <div className="preview-card card-small">
-            <span className="card-index">02</span>
-            <strong>
-              Make it
-              <br />
-              memorable.
-            </strong>
-          </div>
-          <div className="preview-card card-note">
-            <span className="card-index">03</span>
-            <span>
-              Notes on
-              <br />
-              building better
-              <br />
-              interfaces.
-            </span>
-          </div>
-        </div>
-      </div>
+      <span className="sf-hint">Click text to edit</span>
+      <Surface tokens={tokens} variant={variant} />
     </div>
   );
 }
