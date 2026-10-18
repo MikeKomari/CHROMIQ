@@ -1,10 +1,10 @@
 import type { FontEntry, Starter, Tokens } from "@/types/workspace";
 
 export const starters: Starter[] = [
-  { name: "Editorial", meta: "quiet / considered", accent: "#d5ff42" },
-  { name: "Launch day", meta: "high energy / clear", accent: "#ff6b4a" },
-  { name: "Archive", meta: "warm / collected", accent: "#73e0d1" },
-  { name: "Signal", meta: "sharp / technical", accent: "#8f8cff" },
+  { name: "Editorial", meta: "quiet / considered", accent: "#b7cc6a" },
+  { name: "Launch day", meta: "high energy / clear", accent: "#d9846b" },
+  { name: "Archive", meta: "warm / collected", accent: "#7fbfb4" },
+  { name: "Signal", meta: "sharp / technical", accent: "#9c9ad6" },
 ];
 
 export const fontCatalog: FontEntry[] = [
@@ -23,15 +23,15 @@ export const fontCatalog: FontEntry[] = [
 ];
 
 export const defaultTokens: Tokens = {
-  accent: "#d5ff42",
-  accentSoft: "#eef9b4",
+  accent: "#b7cc6a",
+  accentSoft: "#e4ebc4",
   ink: "#10110f",
   paper: "#f4f2ea",
   muted: "#92958d",
   line: "#2c3028",
-  success: "#73e0d1",
-  warning: "#ffc24a",
-  danger: "#ff6b4a",
+  success: "#7fbfb4",
+  warning: "#d9b36a",
+  danger: "#d9846b",
   displayFont: "Space Grotesk",
   bodyFont: "Inter",
   monoFont: "IBM Plex Mono",

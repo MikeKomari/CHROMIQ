@@ -52,7 +52,7 @@ Product backlog for the PRISM visual design workbench. Tickets use a Jira-like f
 - **Scope:** Top bar, starter rail, canvas area, inspector, responsive tablet/mobile fallback.
 - **Acceptance criteria:**
   - Desktop layout has navigation, canvas, and inspector regions.
-  - The workbench stays at a fixed desktop width; narrower viewports scroll horizontally instead of reflowing.
+  - The workspace is a static full-viewport shell: the page never scrolls, only the inspector, restyle controls and preview area scroll internally, and the left sidebar scrolls without a visible scrollbar. The layout adapts to browser zoom and narrow viewports (the left sidebar collapses to an icon rail below 900px) instead of scrolling horizontally.
   - All interactive elements have visible focus states.
 
 ### PRISM-102 — Workspace project switcher
@@ -180,7 +180,7 @@ Product backlog for the PRISM visual design workbench. Tickets use a Jira-like f
 - **Priority:** P1
 - **Status:** DONE
 - **User story:** As a user, I want to test a system against more than one sample interface.
-- **Scope:** Marketing page, dashboard, commerce, documentation, settings, mobile app shell.
+- **Scope:** Six surfaces: SaaS, dashboard, commerce, docs, editorial, and type specimen, with in-place editable text.
 - **Acceptance criteria:**
   - Surfaces share the same token model.
   - User can switch surfaces without losing inspector state.
@@ -382,6 +382,30 @@ Product backlog for the PRISM visual design workbench. Tickets use a Jira-like f
   - Unsupported sections are not represented as exact copies.
   - Confidence is shown by region and token family.
 
+### PRISM-704 — Restyle any website (proxied preview)
+
+- **Priority:** P2
+- **Status:** DONE
+- **User story:** As a frontend developer, I want to paste a public URL and restyle it live so I can export override CSS.
+- **Scope:** `/api/proxy` route, sandboxed scripts-off iframe preview, restyle controls (type, weights, line height, spacing, palette swaps, accent, radius), override CSS export.
+- **Acceptance criteria:**
+  - Only public HTTP(S) URLs are fetched; private addresses are rejected.
+  - Responses are size-limited, time-limited, and rate limited; a 429 shows the server message and the Retry-After wait.
+  - Preview runs without scripts and links do not navigate the frame.
+  - A failed load clears the palette and disables the controls and "Copy override CSS".
+  - Pages built entirely with JavaScript may render incompletely; the UI says the preview is static.
+
+### PRISM-705 — PRISM on any site bookmarklet
+
+- **Priority:** P2
+- **Status:** DONE
+- **User story:** As a user, I want to restyle the site I am already on without pasting a link.
+- **Scope:** Landing-page bookmarklet button, `public/prism-widget.js` floating panel, override CSS export.
+- **Acceptance criteria:**
+  - Dragging the button to the bookmarks bar installs it; clicking it on a site opens a draggable restyle panel.
+  - Exported CSS carries a sanitized source-URL comment.
+  - Sites with strict Content Security Policies may block bookmarklets or Google Fonts; the landing page says so and points to paste-a-link.
+
 ## PRISM-800 — Persistence and collaboration
 
 ### PRISM-801 — Local project file
@@ -466,12 +490,32 @@ Product backlog for the PRISM visual design workbench. Tickets use a Jira-like f
   - Preview updates do not cause avoidable full-workspace re-renders.
   - Heavy inspection dependencies load only when needed.
 
+### PRISM-905 — Reading comfort mode
+
+- **Priority:** P1
+- **Status:** DONE
+- **User story:** As a user, I want a calm default look with an option for stronger contrast.
+- **Acceptance criteria:**
+  - Comfort (default) and High-contrast modes are available on the landing page and in the workspace.
+  - The choice persists in the browser and is applied before first paint.
+
+### PRISM-906 — Workbench UI legibility
+
+- **Priority:** P1
+- **Status:** DONE
+- **User story:** As a user, I want the workspace chrome to be easy to read, with the option to enlarge it.
+- **Acceptance criteria:**
+  - Workspace UI text uses Inter at a 14px base; Space Grotesk is limited to headings and brand, and IBM Plex Mono to values, tokens, shortcuts, and code.
+  - No workspace UI text (outside the preview surface) renders below 11px; uppercase labels use at most 0.06em letter-spacing.
+  - An "Interface text size" setting (Default, Large, Extra large) is available in Workspace settings and the command palette, persists in the browser, and applies before first paint.
+  - The static shell never scrolls the document at 1440x900 or 960x600 at any text size, and preview surface sizes are unchanged.
+
 ## Verified implementation notes
 
-- **Implemented in the local MVP:** PRISM-101, 102, 103, 104, 201, 203, 204, 205, 206, 301, 302, 303, 304, 401, 402, 403, 404, 405, 501–503, 601–605, 701, 703, 801, 803, 804, 901, 902, 903, and 904.
+- **Implemented in the local MVP:** PRISM-101, 102, 103, 104, 201, 203, 204, 205, 206, 301, 302, 303, 304, 401, 402, 403, 404, 405, 501–503, 601–605, 701, 703, 801, 803, 804, 901, 902, 903, 904, 704, 705, 905, and 906.
 - **Still intentionally open:** separate light/dark token pairs (202), cloud storage (802, needs a Supabase project + keys), and headless browser capture (702, needs a browser binary).
-- **Verification run:** `npm run build` passes; `npm run start` serves `/` and `/workspace` with HTTP 200; private URL inspection is rejected with HTTP 400.
-- **Build footprint:** First Load JS ≈ 162 kB (shared ≈ 103 kB) after adding the motion library; 12 Google Fonts reduced to 3 upfront (the rest load on demand), which cuts several hundred kB of font payload from first paint.
+- **Verification run:** `npm run build` passes; `npm run start` serves `/` (landing) and `/workspace` with HTTP 200; private URL inspection is rejected with HTTP 400; restyle loads https://example.com and a `http://127.0.0.1` load shows an error with the controls disabled (browser check).
+- **Build footprint:** First Load JS: `/` ≈ 152 kB, `/workspace` ≈ 176 kB (shared ≈ 103 kB); 12 Google Fonts reduced to 3 upfront (the rest load on demand), which cuts several hundred kB of font payload from first paint.
 
 ## Definition of ready
 

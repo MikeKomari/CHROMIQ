@@ -1,7 +1,9 @@
 "use client";
 
 import { Check, RotateCcw, X } from "lucide-react";
-import type { WorkspaceSettings } from "@/types/workspace";
+import { useContrast } from "@/hooks/use-contrast";
+import { useUiScale } from "@/hooks/use-ui-scale";
+import type { ContrastLevel, UiScale, WorkspaceSettings } from "@/types/workspace";
 
 export function SettingsModal({
   settings,
@@ -12,6 +14,8 @@ export function SettingsModal({
   setSettings: React.Dispatch<React.SetStateAction<WorkspaceSettings>>;
   close: () => void;
 }) {
+  const [contrast, setContrast] = useContrast();
+  const [uiScale, setUiScale] = useUiScale();
   const update = (changes: Partial<WorkspaceSettings>) =>
     setSettings((current) => ({ ...current, ...changes }));
   const reset = () =>
@@ -58,6 +62,53 @@ export function SettingsModal({
               <option value="light">Light</option>
             </select>
           </label>
+          <div className="settings-row">
+            <span>
+              <strong>Reading comfort</strong>
+              <small>Comfort softens glare; high contrast keeps crisp edges.</small>
+            </span>
+            <div className="theme-toggle" role="group" aria-label="Reading comfort">
+              {(
+                [
+                  ["comfort", "Comfort"],
+                  ["high", "High contrast"],
+                ] as [ContrastLevel, string][]
+              ).map(([level, label]) => (
+                <button
+                  key={level}
+                  className={contrast === level ? "active" : ""}
+                  aria-pressed={contrast === level}
+                  onClick={() => setContrast(level)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="settings-row">
+            <span>
+              <strong>Interface text size</strong>
+              <small>Enlarge labels, controls, and panels across the workbench.</small>
+            </span>
+            <div className="theme-toggle" role="group" aria-label="Interface text size">
+              {(
+                [
+                  ["default", "Default"],
+                  ["large", "Large"],
+                  ["xlarge", "Extra large"],
+                ] as [UiScale, string][]
+              ).map(([level, label]) => (
+                <button
+                  key={level}
+                  className={uiScale === level ? "active" : ""}
+                  aria-pressed={uiScale === level}
+                  onClick={() => setUiScale(level)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
           <SettingToggle
             checked={settings.autosave}
             label="Autosave locally"

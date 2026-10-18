@@ -1,7 +1,15 @@
 export type Mode = "dark" | "light";
-export type View = "canvas" | "compare";
+export type View = "canvas" | "compare" | "restyle";
 export type Panel = "type" | "color" | "shape";
-export type PreviewSurfaceKind = "editorial" | "dashboard" | "commerce";
+export type PreviewSurfaceKind =
+  | "editorial"
+  | "saas"
+  | "dashboard"
+  | "commerce"
+  | "docs"
+  | "specimen";
+export type ContrastLevel = "comfort" | "high";
+export type UiScale = "default" | "large" | "xlarge";
 export type Viewport = "desktop" | "tablet" | "mobile" | "custom";
 export type HarmonyMode =
   | "analogous"

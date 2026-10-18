@@ -1,42 +1,8 @@
-import { lookup } from "node:dns/promises";
-import { isIP } from "node:net";
 import { NextRequest, NextResponse } from "next/server";
+import { SafeFetchError, safeFetch } from "@/lib/safe-fetch";
+import { clientKey, rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
-
-function isPrivateIp(address: string) {
-  if (isIP(address) === 4) {
-    const octets = address.split(".").map(Number);
-    return (
-      octets[0] === 10 ||
-      octets[0] === 127 ||
-      (octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) ||
-      (octets[0] === 192 && octets[1] === 168) ||
-      octets[0] === 0
-    );
-  }
-  const normalized = address.toLowerCase();
-  return (
-    normalized === "::1" ||
-    normalized === "::" ||
-    normalized.startsWith("fc") ||
-    normalized.startsWith("fd") ||
-    normalized.startsWith("fe80:")
-  );
-}
-
-async function isBlockedHost(hostname: string) {
-  const host = hostname.toLowerCase();
-  if (host === "localhost" || host.endsWith(".local") || host === "::1")
-    return true;
-  if (isPrivateIp(host)) return true;
-  try {
-    const addresses = await lookup(hostname, { all: true });
-    return addresses.some(({ address }) => isPrivateIp(address));
-  } catch {
-    return true;
-  }
-}
 
 function unique(values: string[]) {
   return [...new Set(values)].slice(0, 12);
@@ -58,43 +24,43 @@ export async function GET(request: NextRequest) {
       { status: 400 },
     );
   }
-  if (
-    !["http:", "https:"].includes(target.protocol) ||
-    target.username ||
-    target.password ||
-    (await isBlockedHost(target.hostname))
-  )
+  const wait = rateLimit("inspect", clientKey(request), 30);
+  if (wait)
     return NextResponse.json(
-      { error: "Only public HTTP(S) URLs can be inspected." },
-      { status: 400 },
+      { error: "Too many requests. Please wait a moment and try again." },
+      { status: 429, headers: { "Retry-After": String(wait) } },
     );
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
   try {
-    const response = await fetch(target, {
-      signal: controller.signal,
-      redirect: "manual",
+    const response = await safeFetch(target, {
+      timeoutMs: 8000,
+      maxBytes: 1_500_000,
+      maxRedirects: 0,
       headers: { "user-agent": "PRISM public preview inspector/0.1" },
-      cache: "no-store",
     });
-    if (response.status >= 300 && response.status < 400)
+    if (response.status >= 300 && response.status < 400) {
+      response.close();
       return NextResponse.json(
         { error: "Redirected URLs must be submitted directly." },
         { status: 400 },
       );
-    if (!response.ok)
+    }
+    if (response.status < 200 || response.status >= 300) {
+      response.close();
       return NextResponse.json(
         { error: `The page responded with HTTP ${response.status}.` },
         { status: 502 },
       );
-    const contentType = response.headers.get("content-type") || "";
-    if (!contentType.includes("text/html"))
+    }
+    const contentType = String(response.headers["content-type"] || "");
+    if (!contentType.includes("text/html")) {
+      response.close();
       return NextResponse.json(
         { error: "The URL did not return an HTML page." },
         { status: 415 },
       );
-    const html = (await response.text()).slice(0, 1_500_000);
+    }
+    const html = new TextDecoder("utf-8").decode((await response.readBody()).bytes);
     const title =
       html
         .match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]
@@ -125,12 +91,15 @@ export async function GET(request: NextRequest) {
       note: "This result was reconstructed from public HTML and visible token hints. It is not a live editable copy of the source page.",
     });
   } catch (error) {
+    if (error instanceof SafeFetchError && error.code === "blocked")
+      return NextResponse.json(
+        { error: "Only public HTTP(S) URLs can be inspected." },
+        { status: 400 },
+      );
     const message =
-      error instanceof Error && error.name === "AbortError"
+      error instanceof SafeFetchError && error.code === "timeout"
         ? "The inspection timed out after 8 seconds."
         : "The page could not be fetched from the server.";
     return NextResponse.json({ error: message }, { status: 502 });
-  } finally {
-    clearTimeout(timeout);
   }
 }
