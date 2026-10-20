@@ -1,3 +1,4 @@
+import { onAccent, themeColors } from "@/lib/theme";
 import type { Mode, PreviewSurfaceKind, Tokens } from "@/types/workspace";
 import {
   CommerceSurface,
@@ -29,6 +30,7 @@ export function PreviewSurface({
   surface: PreviewSurfaceKind;
 }) {
   const light = mode === "light";
+  const colors = themeColors(tokens, mode);
   const Surface = surfaces[surface] ?? EditorialSurface;
   const kind = surface in surfaces ? surface : "editorial";
   return (
@@ -36,8 +38,13 @@ export function PreviewSurface({
       className={`design-preview ${light ? "light-preview" : "dark-preview"} surface-${kind}`}
       style={
         {
-          "--preview-accent": tokens.accent,
-          "--preview-accent-soft": tokens.accentSoft,
+          "--preview-bg": colors.background,
+          "--preview-ink": colors.foreground,
+          "--preview-muted": colors.muted,
+          "--preview-line": colors.line,
+          "--preview-accent": colors.accent,
+          "--preview-accent-soft": colors.accentSoft,
+          "--preview-on-accent": onAccent(colors),
           "--preview-radius": `${tokens.radius}px`,
           "--preview-space": `${tokens.spacing}px`,
           "--preview-scale": tokens.typeScale,
@@ -52,13 +59,12 @@ export function PreviewSurface({
           "--preview-success": tokens.success,
           "--preview-warning": tokens.warning,
           "--preview-danger": tokens.danger,
-          "--preview-paper": tokens.paper,
-          "--preview-line": tokens.line,
+          "--preview-paper": colors.background,
         } as React.CSSProperties
       }
     >
       <span className="sf-hint">Click text to edit</span>
-      <Surface tokens={tokens} variant={variant} />
+      <Surface tokens={tokens} variant={variant} mode={mode} />
     </div>
   );
 }

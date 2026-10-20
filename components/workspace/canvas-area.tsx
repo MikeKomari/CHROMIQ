@@ -6,6 +6,7 @@ import {
   Globe2,
   Grid2X2,
   Redo2,
+  SunMoon,
   Undo2,
 } from "lucide-react";
 import { motion } from "motion/react";
@@ -85,6 +86,12 @@ export function CanvasArea({
             onClick={() => setView("compare")}
           >
             <Grid2X2 size={14} /> Compare
+          </button>
+          <button
+            className={view === "themes" ? "active" : ""}
+            onClick={() => setView("themes")}
+          >
+            <SunMoon size={14} /> Themes
           </button>
           <button
             className={view === "restyle" ? "active" : ""}
@@ -194,13 +201,19 @@ export function CanvasArea({
           <span>Changes apply instantly</span>
         </div>
         <div
-          className={`preview-frame ${view === "compare" ? "compare-frame" : ""} viewport-${viewport} zoom-${Math.round(zoom * 100)}`}
+          className={`preview-frame ${view === "compare" || view === "themes" ? "compare-frame" : ""} viewport-${viewport} zoom-${Math.round(zoom * 100)}`}
           style={
             {
               "--preview-custom-width": `${customWidth}px`,
             } as React.CSSProperties
           }
         >
+          {view === "themes" && (
+            <div className="compare-labels">
+              <span>Light theme</span>
+              <span>Dark theme</span>
+            </div>
+          )}
           {view === "compare" && (
             <div className="compare-labels">
               <span>
@@ -213,10 +226,18 @@ export function CanvasArea({
           )}
           <PreviewSurface
             tokens={tokens}
-            mode={mode}
+            mode={view === "themes" ? "light" : mode}
             variant={view === "compare" ? "a" : "single"}
             surface={surface}
           />
+          {view === "themes" && (
+            <PreviewSurface
+              tokens={tokens}
+              mode="dark"
+              variant="single"
+              surface={surface}
+            />
+          )}
           {view === "compare" && (
             <PreviewSurface
               tokens={

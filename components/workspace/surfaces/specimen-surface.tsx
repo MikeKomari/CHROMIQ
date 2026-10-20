@@ -1,3 +1,4 @@
+import { themeColors } from "@/lib/theme";
 import { Ed, type SurfaceProps } from "./editable";
 
 const roles = [
@@ -17,14 +18,15 @@ const ladder = [
 
 const weights = [300, 400, 500, 600, 700];
 
-export function SpecimenSurface({ tokens, variant }: SurfaceProps) {
+export function SpecimenSurface({ tokens, variant, mode = "light" }: SurfaceProps) {
+  const colors = themeColors(tokens, mode);
   const swatches = [
-    { name: "Accent", value: tokens.accent },
-    { name: "Accent soft", value: tokens.accentSoft },
-    { name: "Ink", value: tokens.ink },
-    { name: "Paper", value: tokens.paper },
-    { name: "Muted", value: tokens.muted },
-    { name: "Line", value: tokens.line },
+    { name: "Accent", value: colors.accent },
+    { name: "Accent soft", value: colors.accentSoft },
+    { name: "Ink", value: colors.foreground },
+    { name: "Paper", value: colors.background },
+    { name: "Muted", value: colors.muted },
+    { name: "Line", value: colors.line },
     { name: "Success", value: tokens.success },
     { name: "Warning", value: tokens.warning },
     { name: "Danger", value: tokens.danger },

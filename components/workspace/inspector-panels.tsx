@@ -1,12 +1,15 @@
 import type { Dispatch, SetStateAction } from "react";
-import { RotateCcw, Sparkles } from "lucide-react";
+import { Moon, RotateCcw, Sparkles, Sun, TriangleAlert } from "lucide-react";
 import { motion } from "motion/react";
 import { contrastRatio, contrastStatus, semanticPairs } from "@/lib/contrast";
 import { loadFontFamily } from "@/lib/fonts";
+import { themeRoleLabels, themeTokenKeys } from "@/lib/theme";
 import { fontCatalog } from "@/data/workspace";
 import type {
   FontEntry,
   HarmonyMode,
+  Mode,
+  ThemeRole,
   TokenUpdate,
   Tokens,
 } from "@/types/workspace";
@@ -160,16 +163,24 @@ export function ColorPanel({
   locked,
   setLocked,
   randomize,
+  randomizeWarning,
   harmony,
   setHarmony,
+  mode,
+  setMode,
+  deriveDark,
 }: {
   tokens: Tokens;
   updateTokens: TokenUpdate;
   locked: string[];
   setLocked: Dispatch<SetStateAction<string[]>>;
   randomize: () => void;
+  randomizeWarning: string | null;
   harmony: HarmonyMode;
   setHarmony: (harmony: HarmonyMode) => void;
+  mode: Mode;
+  setMode: (mode: Mode) => void;
+  deriveDark: () => void;
 }) {
   const toggleLock = (key: string) =>
     setLocked((current) =>
@@ -177,6 +188,7 @@ export function ColorPanel({
         ? current.filter((item) => item !== key)
         : [...current, key],
     );
+  const pairs = semanticPairs(tokens);
   return (
     <div className="panel-content">
       <SectionHeading
@@ -187,40 +199,62 @@ export function ColorPanel({
           </button>
         }
       />
-      <div className="palette-stack">
-        <ColorRow
-          label="Accent"
-          value={tokens.accent}
-          token="accent"
-          updateTokens={updateTokens}
-          locked={locked.includes("accent")}
-          toggleLock={toggleLock}
-        />
-        <ColorRow
-          label="Accent soft"
-          value={tokens.accentSoft}
-          token="accentSoft"
-          updateTokens={updateTokens}
-          locked={locked.includes("accentSoft")}
-          toggleLock={toggleLock}
-        />
-        <ColorRow
-          label="Ink"
-          value={tokens.ink}
-          token="ink"
-          updateTokens={updateTokens}
-          locked={locked.includes("ink")}
-          toggleLock={toggleLock}
-        />
-        <ColorRow
-          label="Paper"
-          value={tokens.paper}
-          token="paper"
-          updateTokens={updateTokens}
-          locked={locked.includes("paper")}
-          toggleLock={toggleLock}
-        />
+      <div
+        className="theme-tabs"
+        role="radiogroup"
+        aria-label="Theme being edited"
+        onKeyDown={(event) => {
+          if (
+            !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(
+              event.key,
+            )
+          )
+            return;
+          event.preventDefault();
+          const next = mode === "light" ? "dark" : "light";
+          setMode(next);
+          event.currentTarget
+            .querySelector<HTMLButtonElement>(`[data-theme-tab="${next}"]`)
+            ?.focus();
+        }}
+      >
+        {(["light", "dark"] as const).map((item) => (
+          <button
+            key={item}
+            type="button"
+            role="radio"
+            data-theme-tab={item}
+            aria-checked={mode === item}
+            tabIndex={mode === item ? 0 : -1}
+            className={mode === item ? "active" : ""}
+            onClick={() => setMode(item)}
+          >
+            {item === "light" ? <Sun size={13} /> : <Moon size={13} />}
+            {item === "light" ? "Light" : "Dark"}
+          </button>
+        ))}
       </div>
+      <div className="palette-stack">
+        {(Object.keys(themeTokenKeys[mode]) as ThemeRole[]).map((role) => {
+          const token = themeTokenKeys[mode][role];
+          return (
+            <ColorRow
+              key={token}
+              label={themeRoleLabels[role]}
+              value={tokens[token] as string}
+              token={token}
+              updateTokens={updateTokens}
+              locked={locked.includes(token)}
+              toggleLock={toggleLock}
+            />
+          );
+        })}
+      </div>
+      {mode === "dark" && (
+        <button className="tiny-link derive-link" onClick={deriveDark}>
+          <Moon size={12} /> Derive dark from light
+        </button>
+      )}
       <SectionHeading label="State colors" />
       <div className="palette-stack">
         <ColorRow
@@ -262,35 +296,53 @@ export function ColorPanel({
         <Sparkles size={16} />
         <span>
           <strong>Find a new direction</strong>
-          <small>Generate a coherent accent palette</small>
+          <small>Generates accents for both themes</small>
         </span>
         <span className="shortcut">⌘ R</span>
       </motion.button>
+      {randomizeWarning && (
+        <p className="panel-warning" role="status">
+          <TriangleAlert size={13} /> {randomizeWarning}
+        </p>
+      )}
       <div className="inspector-divider" />
       <SectionHeading label="Contrast check" />
-      <div className="palette-stack">
-        {semanticPairs(tokens).map((pair) => {
-          const ratio = contrastRatio(pair.fg, pair.bg);
-          const status = contrastStatus(ratio);
-          return (
-            <div className="contrast-row" key={pair.label}>
-              <span
-                className="contrast-swatch"
-                style={{ background: pair.bg, color: pair.fg }}
-              >
-                Aa
-              </span>
-              <span>
-                <strong>{pair.label}</strong>
-                <small>{ratio.toFixed(2)}:1</small>
-              </span>
-              <span className={`pass-badge ${status === "Fail" ? "fail" : ""}`}>
-                {status === "Fail" ? "CHECK" : status.toUpperCase()}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+      {(["light", "dark"] as const).map((theme) => (
+        <div key={theme}>
+          <div className="contrast-group-label">
+            {theme === "light" ? "Light theme" : "Dark theme"}
+          </div>
+          <div className="palette-stack">
+            {pairs
+              .filter((pair) => pair.theme === theme)
+              .map((pair) => {
+                const ratio = contrastRatio(pair.fg, pair.bg);
+                const failing = ratio < pair.min;
+                const status = failing ? "Fail" : contrastStatus(ratio);
+                return (
+                  <div className="contrast-row" key={`${theme}-${pair.label}`}>
+                    <span
+                      className="contrast-swatch"
+                      style={{ background: pair.bg, color: pair.fg }}
+                    >
+                      Aa
+                    </span>
+                    <span>
+                      <strong>{pair.label}</strong>
+                      <small>
+                        {ratio.toFixed(2)}:1
+                        {failing ? ` · needs ${pair.min}:1` : ""}
+                      </small>
+                    </span>
+                    <span className={`pass-badge ${failing ? "fail" : ""}`}>
+                      {failing ? "FAIL" : status.toUpperCase()}
+                    </span>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

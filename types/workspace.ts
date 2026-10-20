@@ -1,5 +1,6 @@
 export type Mode = "dark" | "light";
-export type View = "canvas" | "compare" | "restyle";
+export type View = "canvas" | "compare" | "themes" | "restyle";
+export type ModePreference = Mode | "system";
 export type Panel = "type" | "color" | "shape";
 export type PreviewSurfaceKind =
   | "editorial"
@@ -22,13 +23,14 @@ export type FontRole = "display" | "body" | "mono";
 export type FontEntry = { name: string; category: FontRole };
 
 export type WorkspaceSettings = {
-  defaultMode: Mode;
+  defaultMode: ModePreference;
   reducedMotion: boolean;
   showGrid: boolean;
   autosave: boolean;
   exportFormat: "css" | "tailwind" | "shadcn" | "design" | "json";
 };
 
+/** Light theme colors live in accent/accentSoft/ink/paper/muted/line; dark theme colors in the dark* pairs. */
 export type Tokens = {
   accent: string;
   accentSoft: string;
@@ -36,6 +38,12 @@ export type Tokens = {
   paper: string;
   muted: string;
   line: string;
+  darkAccent: string;
+  darkAccentSoft: string;
+  darkInk: string;
+  darkPaper: string;
+  darkMuted: string;
+  darkLine: string;
   success: string;
   warning: string;
   danger: string;
@@ -54,6 +62,17 @@ export type Tokens = {
   breakpointMd: number;
   breakpointLg: number;
 };
+
+/** Resolved semantic colors for one theme. */
+export type ThemeColors = {
+  background: string;
+  foreground: string;
+  muted: string;
+  line: string;
+  accent: string;
+  accentSoft: string;
+};
+export type ThemeRole = keyof ThemeColors;
 
 export type Starter = { name: string; meta: string; accent: string };
 export type TokenUpdate = (changes: Partial<Tokens>) => void;

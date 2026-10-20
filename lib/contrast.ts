@@ -1,4 +1,5 @@
-import type { Tokens } from "@/types/workspace";
+import { onAccent, themeColors, themeTokenKeys } from "@/lib/theme";
+import type { Mode, Tokens } from "@/types/workspace";
 
 function channel(value: number) {
   const normalized = value / 255;
@@ -32,16 +33,67 @@ export function contrastStatus(ratio: number) {
   return "Fail";
 }
 
-export function semanticPairs(tokens: Tokens) {
-  return [
-    { label: "Accent on ink", token: "accent", fg: tokens.accent, bg: tokens.ink },
-    { label: "Accent on paper", token: "accent", fg: tokens.accent, bg: tokens.paper },
-    { label: "Accent soft on ink", token: "accentSoft", fg: tokens.accentSoft, bg: tokens.ink },
-    { label: "Accent soft on paper", token: "accentSoft", fg: tokens.accentSoft, bg: tokens.paper },
-    { label: "Ink on paper", token: "ink", fg: tokens.ink, bg: tokens.paper },
-    { label: "Paper on ink", token: "paper", fg: tokens.paper, bg: tokens.ink },
-    { label: "Muted on paper", token: "muted", fg: tokens.muted, bg: tokens.paper },
-    { label: "Muted on ink", token: "muted", fg: tokens.muted, bg: tokens.ink },
-  ];
+export type ContrastPair = {
+  label: string;
+  theme: Mode;
+  token: keyof Tokens;
+  fg: string;
+  bg: string;
+  min: number;
+};
+
+/** Required contrast pairs for both themes, light first. */
+export function semanticPairs(tokens: Tokens): ContrastPair[] {
+  return (["light", "dark"] as const).flatMap((theme) => {
+    const colors = themeColors(tokens, theme);
+    const keys = themeTokenKeys[theme];
+    return [
+      {
+        label: "Text on background",
+        theme,
+        token: keys.foreground,
+        fg: colors.foreground,
+        bg: colors.background,
+        min: 4.5,
+      },
+      {
+        label: "Muted on background",
+        theme,
+        token: keys.muted,
+        fg: colors.muted,
+        bg: colors.background,
+        min: 3,
+      },
+      {
+        label: "Accent on background",
+        theme,
+        token: keys.accent,
+        fg: colors.accent,
+        bg: colors.background,
+        min: 3,
+      },
+      {
+        label: "Label on accent",
+        theme,
+        token: keys.accent,
+        fg: onAccent(colors),
+        bg: colors.accent,
+        min: 4.5,
+      },
+      {
+        label: "Text on accent soft",
+        theme,
+        token: keys.accentSoft,
+        fg: colors.foreground,
+        bg: colors.accentSoft,
+        min: 4.5,
+      },
+    ];
+  });
 }
 
+export function failingPairs(tokens: Tokens): ContrastPair[] {
+  return semanticPairs(tokens).filter(
+    (pair) => contrastRatio(pair.fg, pair.bg) < pair.min,
+  );
+}

@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { defaultTokens } from "@/data/workspace";
 import { importCss, importJson, importTailwind } from "@/lib/importers";
-import { randomPalette, tokenCss } from "@/lib/colors";
-import { contrastRatio, semanticPairs } from "@/lib/contrast";
+import { randomPalette } from "@/lib/colors";
+import { contrastRatio, failingPairs } from "@/lib/contrast";
+import { buildExports } from "@/lib/exporters";
+import { deriveDarkTheme, resolveMode } from "@/lib/theme";
 import { loadFontFamily } from "@/lib/fonts";
+import { normalizeTokens } from "@/lib/tokens";
 import { validateTokens } from "@/lib/validate";
 import type {
   HarmonyMode,
@@ -23,11 +26,19 @@ import type {
   WorkspaceSettings,
 } from "@/types/workspace";
 
+const accentKeys: (keyof Tokens)[] = [
+  "accent",
+  "accentSoft",
+  "darkAccent",
+  "darkAccentSoft",
+];
+
 export function useWorkspace() {
   const [tokens, setTokens] = useState<Tokens>(defaultTokens);
   const [history, setHistory] = useState<Tokens[]>([]);
   const [future, setFuture] = useState<Tokens[]>([]);
   const [mode, setMode] = useState<Mode>("dark");
+  const [modeManual, setModeManual] = useState(false);
   const [view, setView] = useState<View>("canvas");
   const [surface, setSurface] = useState<PreviewSurfaceKind>("editorial");
   const [viewport, setViewport] = useState<Viewport>("desktop");
@@ -52,15 +63,17 @@ export function useWorkspace() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
   const [versions, setVersions] = useState<Version[]>([]);
-  const [compareTokens, setCompareTokens] = useState<Tokens | null>(null);
+  const [compareTokens, setCompareTokensState] = useState<Tokens | null>(null);
   const [importWarnings, setImportWarnings] = useState<string[]>([]);
   const [readOnly, setReadOnly] = useState(false);
+  const [randomizeWarning, setRandomizeWarning] = useState<string | null>(null);
+  const keepRandomizeWarning = useRef(false);
 
   useEffect(() => {
     const stored = window.localStorage.getItem("prism-tokens");
     if (stored)
       try {
-        setTokens({ ...defaultTokens, ...(JSON.parse(stored) as Partial<Tokens>) });
+        setTokens(normalizeTokens(JSON.parse(stored) as Partial<Tokens>));
       } catch {
         /* keep defaults */
       }
@@ -71,16 +84,20 @@ export function useWorkspace() {
       } catch {
         /* keep an empty project list */
       }
+    let defaultMode: WorkspaceSettings["defaultMode"] = "dark";
     const storedSettings = window.localStorage.getItem("prism-settings");
     if (storedSettings)
       try {
-        setSettings((current) => ({
-          ...current,
-          ...(JSON.parse(storedSettings) as Partial<WorkspaceSettings>),
-        }));
+        const parsedSettings = JSON.parse(
+          storedSettings,
+        ) as Partial<WorkspaceSettings>;
+        if (parsedSettings.defaultMode)
+          defaultMode = parsedSettings.defaultMode;
+        setSettings((current) => ({ ...current, ...parsedSettings }));
       } catch {
         /* keep default preferences */
       }
+    let sharedMode = false;
     const storedLocks = window.localStorage.getItem("prism-locks");
     if (storedLocks)
       try {
@@ -101,15 +118,41 @@ export function useWorkspace() {
         const decoded = JSON.parse(
           atob(share.replace(/-/g, "+").replace(/_/g, "/")),
         ) as { tokens: Partial<Tokens>; mode?: Mode; starter?: string };
-        setTokens({ ...defaultTokens, ...decoded.tokens });
-        if (decoded.mode) setMode(decoded.mode);
+        setTokens(normalizeTokens(decoded.tokens));
+        if (decoded.mode) {
+          setMode(decoded.mode);
+          sharedMode = true;
+        }
         if (decoded.starter) setActiveStarter(decoded.starter);
         setReadOnly(true);
       }
     } catch {
       /* ignore a malformed share link */
     }
+    if (sharedMode) setModeManual(true);
+    else setMode(resolveMode(defaultMode));
   }, []);
+
+  useEffect(() => {
+    if (settings.defaultMode !== "system" || modeManual) return;
+    const query = window.matchMedia("(prefers-color-scheme: light)");
+    const follow = () => setMode(resolveMode("system"));
+    query.addEventListener("change", follow);
+    return () => query.removeEventListener("change", follow);
+  }, [settings.defaultMode, modeManual]);
+
+  const chooseMode = (next: Mode) => {
+    setModeManual(true);
+    setMode(next);
+  };
+
+  const setCompareTokens = (next: Tokens | null) =>
+    setCompareTokensState(next && normalizeTokens(next));
+
+  useEffect(() => {
+    if (keepRandomizeWarning.current) keepRandomizeWarning.current = false;
+    else setRandomizeWarning(null);
+  }, [tokens]);
 
   useEffect(() => {
     window.localStorage.setItem("prism-tokens", JSON.stringify(tokens));
@@ -172,51 +215,57 @@ export function useWorkspace() {
   };
 
   const randomize = () => {
+    if (readOnly) return;
     const next = randomPalette(tokens, harmony);
     const changes: Partial<Tokens> = {};
-    if (!locked.includes("accent")) changes.accent = next.accent;
-    if (!locked.includes("accentSoft")) changes.accentSoft = next.accentSoft;
+    for (const key of accentKeys)
+      if (!locked.includes(key))
+        (changes[key] as string) = next.changes[key] as string;
+    const passed = locked.some((key) =>
+      accentKeys.includes(key as keyof Tokens),
+    )
+      ? !failingPairs({ ...tokens, ...changes }).some((pair) =>
+          accentKeys.includes(pair.token),
+        )
+      : next.passed;
+    if (!Object.keys(changes).length) return;
+    keepRandomizeWarning.current = true;
+    updateTokens(changes);
+    setRandomizeWarning(
+      passed
+        ? null
+        : "No passing palette found in 30 tries; check contrast before export.",
+    );
+  };
+
+  const deriveDark = () => {
+    const derived = deriveDarkTheme(tokens);
+    const changes: Partial<Tokens> = {};
+    for (const key of Object.keys(derived) as (keyof Tokens)[])
+      if (!locked.includes(key))
+        (changes[key] as string) = derived[key] as string;
+    if (!Object.keys(changes).length) return;
     updateTokens(changes);
   };
 
-  const exportFiles = useMemo(() => {
-    const css = `/* PRISM export: ${activeStarter} */\n${tokenCss(tokens, mode)}\n\n:root {\n  --prism-font-display: "${tokens.displayFont}";\n  --prism-font-body: "${tokens.bodyFont}";\n  --prism-font-mono: "${tokens.monoFont}";\n  --prism-success: ${tokens.success};\n  --prism-warning: ${tokens.warning};\n  --prism-danger: ${tokens.danger};\n  --prism-line-height: ${tokens.lineHeight};\n  --prism-tracking: ${tokens.tracking}em;\n  --prism-border: ${tokens.borderWidth}px;\n  --prism-shadow: ${tokens.shadow};\n  --prism-motion: ${tokens.motion}ms;\n  --prism-breakpoint-sm: ${tokens.breakpointSm}px;\n  --prism-breakpoint-md: ${tokens.breakpointMd}px;\n  --prism-breakpoint-lg: ${tokens.breakpointLg}px;\n}\n\n@media (prefers-color-scheme: light) {\n  :root { --prism-accent: ${tokens.accent}; }\n}`;
-    const tailwind = `@theme inline {\n  --color-prism-accent: ${tokens.accent};\n  --color-prism-accent-soft: ${tokens.accentSoft};\n  --color-prism-ink: ${tokens.ink};\n  --color-prism-paper: ${tokens.paper};\n  --color-prism-success: ${tokens.success};\n  --color-prism-warning: ${tokens.warning};\n  --color-prism-danger: ${tokens.danger};\n  --radius-prism: ${tokens.radius}px;\n  --tracking-prism: ${tokens.tracking}em;\n  --leading-prism: ${tokens.lineHeight};\n  --border-prism: ${tokens.borderWidth}px;\n  --shadow-prism: ${tokens.shadow};\n  --breakpoint-sm: ${tokens.breakpointSm}px;\n  --breakpoint-md: ${tokens.breakpointMd}px;\n  --breakpoint-lg: ${tokens.breakpointLg}px;\n}`;
-    const shadcn = `:root {\n  --primary: ${tokens.accent};\n  --primary-foreground: ${tokens.ink};\n  --background: ${tokens.paper};\n  --foreground: ${tokens.ink};\n  --border: ${tokens.line};\n  --success: ${tokens.success};\n  --warning: ${tokens.warning};\n  --destructive: ${tokens.danger};\n  --radius: ${tokens.radius}px;\n}\n\n.dark {\n  --primary: ${tokens.accent};\n  --primary-foreground: ${tokens.ink};\n  --background: ${tokens.ink};\n  --foreground: ${tokens.paper};\n  --border: ${tokens.line};\n}`;
-    const design = `# ${activeStarter}\n\n## Visual direction\n\nA PRISM design system with a ${mode} preview as the current working theme.\n\n## Tokens\n\n- Accent: ${tokens.accent}\n- Accent soft: ${tokens.accentSoft}\n- Ink: ${tokens.ink}\n- Paper: ${tokens.paper}\n- Display font: ${tokens.displayFont}\n- Body font: ${tokens.bodyFont}\n- Mono font: ${tokens.monoFont}\n- Success: ${tokens.success}\n- Warning: ${tokens.warning}\n- Danger: ${tokens.danger}\n- Line height: ${tokens.lineHeight}\n- Tracking: ${tokens.tracking}em\n- Border: ${tokens.borderWidth}px\n- Shadow: ${tokens.shadow}\n- Motion: ${tokens.motion}ms\n- Breakpoints: ${tokens.breakpointSm}/${tokens.breakpointMd}/${tokens.breakpointLg}px\n- Radius: ${tokens.radius}px\n- Spacing unit: ${tokens.spacing}px\n- Display scale: ${tokens.typeScale}x\n\n## Usage\n\nUse semantic tokens instead of hardcoded values. Preserve the system's contrast and shape language across light and dark surfaces.`;
-    const json = JSON.stringify(
-      { version: 1, name: activeStarter, tokens },
-      null,
-      2,
-    );
-    const project = JSON.stringify(
-      {
-        version: 1,
-        type: "prism-project",
-        project: {
-          id: projectId,
-          name: projectName,
-          mode,
-          starter: activeStarter,
-          tokens,
-          snapshots,
-        },
-      },
-      null,
-      2,
-    );
-    return { css, tailwind, shadcn, design, json, project };
-  }, [activeStarter, mode, projectId, projectName, snapshots, tokens]);
+  const exportFiles = useMemo(
+    () =>
+      buildExports({
+        tokens,
+        starter: activeStarter,
+        mode,
+        projectId,
+        projectName,
+        snapshots,
+      }),
+    [activeStarter, mode, projectId, projectName, snapshots, tokens],
+  );
 
   const exportWarnings = useMemo(() => {
-    const warnings: string[] = [];
-    const failing = semanticPairs(tokens).filter(
-      (pair) => contrastRatio(pair.fg, pair.bg) < 3,
+    const warnings = failingPairs(tokens).map(
+      (pair) =>
+        `${pair.theme === "light" ? "Light" : "Dark"} theme: ${pair.label} (${pair.token}) is ${contrastRatio(pair.fg, pair.bg)}:1, needs ${pair.min}:1`,
     );
-    if (failing.length)
-      warnings.push(
-        `Below large-text contrast: ${[...new Set(failing.map((pair) => pair.token))].join(", ")}.`,
-      );
     if (tokens.radius > 24)
       warnings.push(
         "The radius is unusually large and may change component density.",
@@ -262,8 +311,9 @@ export function useWorkspace() {
   const restoreSnapshot = (snapshot: Snapshot) => {
     if (readOnly) return;
     setHistory((current) => [...current.slice(-19), tokens]);
-    setTokens({ ...defaultTokens, ...snapshot.tokens });
-    setMode(snapshot.mode);
+    setFuture([]);
+    setTokens(normalizeTokens(snapshot.tokens));
+    chooseMode(snapshot.mode);
     setActiveStarter(snapshot.starter);
     setSaved(false);
   };
@@ -310,8 +360,8 @@ export function useWorkspace() {
     if (readOnly) return;
     setHistory((current) => [...current.slice(-19), tokens]);
     setFuture([]);
-    setTokens({ ...defaultTokens, ...version.tokens });
-    setMode(version.mode);
+    setTokens(normalizeTokens(version.tokens));
+    chooseMode(version.mode);
     setActiveStarter(version.starter);
     setSaved(false);
   };
@@ -354,7 +404,7 @@ export function useWorkspace() {
     setTokens(defaultTokens);
     setSnapshots([]);
     setActiveStarter("Editorial");
-    setMode("dark");
+    setMode(resolveMode(settings.defaultMode));
     setHistory([]);
     setFuture([]);
     setSaved(true);
@@ -363,8 +413,8 @@ export function useWorkspace() {
   const loadProject = (project: Project) => {
     setProjectId(project.id);
     setProjectName(project.name);
-    setTokens({ ...defaultTokens, ...project.tokens });
-    setMode(project.mode);
+    setTokens(normalizeTokens(project.tokens));
+    chooseMode(project.mode);
     setActiveStarter(project.starter);
     setSnapshots(project.snapshots);
     setHistory([]);
@@ -407,8 +457,8 @@ export function useWorkspace() {
           }
           setProjectId(project.id || crypto.randomUUID());
           setProjectName(project.name);
-          setTokens({ ...defaultTokens, ...importedTokens });
-          setMode(project.mode);
+          setTokens(normalizeTokens(importedTokens));
+          chooseMode(project.mode);
           setActiveStarter(project.starter);
           setSnapshots(project.snapshots || []);
           setHistory([]);
@@ -435,7 +485,7 @@ export function useWorkspace() {
   return {
     tokens,
     mode,
-    setMode,
+    setMode: chooseMode,
     view,
     setView,
     surface,
@@ -468,6 +518,8 @@ export function useWorkspace() {
     undo,
     redo,
     randomize,
+    randomizeWarning,
+    deriveDark,
     exportFiles,
     exportWarnings,
     exportErrors,
