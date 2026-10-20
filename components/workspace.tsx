@@ -397,6 +397,9 @@ export function Workspace() {
       {showInspect && (
         <InspectModal
           close={() => setShowInspect(false)}
+          apply={(t) => updateTokens(t)}
+          readOnly={readOnly}
+          locked={locked}
           restyle={(url) => {
             setRestyleRequest({ url, id: Date.now() });
             setView("restyle");

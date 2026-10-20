@@ -106,7 +106,7 @@ Product backlog for the PRISM visual design workbench. Tickets use a Jira-like f
 ### PRISM-202 — Theme pairs for light and dark mode
 
 - **Priority:** P0
-- **Status:** IN PROGRESS
+- **Status:** DONE
 - **User story:** As a designer, I want to test one system in both light and dark contexts.
 - **Scope:** Paired semantic values, theme selector, system preference option, split preview.
 - **Acceptance criteria:**
@@ -114,6 +114,7 @@ Product backlog for the PRISM visual design workbench. Tickets use a Jira-like f
   - Exports include both theme scopes.
   - Contrast checks run for both themes.
   - System preference can be used as the default.
+- **Notes:** Light colors live in `accent/accentSoft/ink/paper/muted/line`, dark colors in the `dark*` pairs (`lib/theme.ts` maps roles to keys). The preview reads every color from tokens, a "Themes" canvas view shows both side by side, and data saved before the split is migrated on load (`lib/tokens.ts`).
 
 ### PRISM-203 — Undo and redo history
 
@@ -406,6 +407,18 @@ Product backlog for the PRISM visual design workbench. Tickets use a Jira-like f
   - Exported CSS carries a sanitized source-URL comment.
   - Sites with strict Content Security Policies may block bookmarklets or Google Fonts; the landing page says so and points to paste-a-link.
 
+### PRISM-706 — Import a design system from a public URL
+
+- **Priority:** P1
+- **Status:** DONE
+- **User story:** As a frontend developer, I want to pull a site's colors, radius and fonts into PRISM without running its scripts.
+- **Scope:** `/api/inspect` follows up to 3 validated redirects, reads inline styles plus up to 6 linked stylesheets and one level of `@import` within a 2 MB budget; `lib/css-extract.ts` maps custom properties, role hints and light/dark scopes to PRISM tokens.
+- **Acceptance criteria:**
+  - Scripts are never executed; client-rendered pages are labeled as such, and their stylesheets are still read.
+  - Every suggested value comes from evidence in the page; missing evidence leaves the token untouched.
+  - Suggestions are grouped (light, dark, type, shape) with a confidence per family, and applying them is one undoable change.
+  - Fonts outside the catalog and unreadable color functions are reported, not guessed.
+
 ## PRISM-800 — Persistence and collaboration
 
 ### PRISM-801 — Local project file
@@ -513,7 +526,8 @@ Product backlog for the PRISM visual design workbench. Tickets use a Jira-like f
 ## Verified implementation notes
 
 - **Implemented in the local MVP:** PRISM-101, 102, 103, 104, 201, 203, 204, 205, 206, 301, 302, 303, 304, 401, 402, 403, 404, 405, 501–503, 601–605, 701, 703, 801, 803, 804, 901, 902, 903, 904, 704, 705, 905, and 906.
-- **Still intentionally open:** separate light/dark token pairs (202), cloud storage (802, needs a Supabase project + keys), and headless browser capture (702, needs a browser binary).
+- **Added:** PRISM-202 (light/dark theme pairs) and PRISM-706 (URL design import).
+- **Still intentionally open:** cloud storage (802, needs a Supabase project + keys), and headless browser capture (702, needs a browser binary).
 - **Verification run:** `npm run build` passes; `npm run start` serves `/` (landing) and `/workspace` with HTTP 200; private URL inspection is rejected with HTTP 400; restyle loads https://example.com and a `http://127.0.0.1` load shows an error with the controls disabled (browser check).
 - **Build footprint:** First Load JS: `/` ≈ 152 kB, `/workspace` ≈ 176 kB (shared ≈ 103 kB); 12 Google Fonts reduced to 3 upfront (the rest load on demand), which cuts several hundred kB of font payload from first paint.
 
