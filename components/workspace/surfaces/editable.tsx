@@ -1,9 +1,10 @@
 import { createElement, type ReactNode } from "react";
-import type { Tokens } from "@/types/workspace";
+import type { Mode, Tokens } from "@/types/workspace";
 
 export type SurfaceProps = {
   tokens: Tokens;
   variant: "a" | "b" | "single";
+  mode?: Mode;
 };
 
 type EditableTag =

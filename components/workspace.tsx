@@ -24,7 +24,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import { motion, MotionConfig } from "motion/react";
 import { starters } from "@/data/workspace";
-import { hexToHsl, hslToHex } from "@/lib/colors";
+import { starterAccents } from "@/lib/colors";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { CanvasArea } from "@/components/workspace/canvas-area";
 import { ExportModal } from "@/components/workspace/export-modal";
@@ -97,6 +97,8 @@ export function Workspace() {
     harmony,
     setHarmony,
     randomize,
+    randomizeWarning,
+    deriveDark,
     readOnly,
   } = workspace;
   useEffect(() => {
@@ -136,10 +138,7 @@ export function Workspace() {
     return () => window.removeEventListener("keydown", handleKey);
   }, [showCommand, showExport, showProjects, showSnapshots, showVersions, showImport, showInspect, showSettings]);
   const selectStarter = (starter: (typeof starters)[number]) => {
-    updateTokens({
-      accent: starter.accent,
-      accentSoft: hslToHex(hexToHsl(starter.accent).h, 45, 86),
-    });
+    updateTokens(starterAccents(starter));
     setActiveStarter(starter.name);
   };
   const compareVersion = (version: Version) => {
@@ -298,8 +297,12 @@ export function Workspace() {
               locked={locked}
               setLocked={setLocked}
               randomize={randomize}
+              randomizeWarning={randomizeWarning}
               harmony={harmony}
               setHarmony={setHarmony}
+              mode={mode}
+              setMode={setMode}
+              deriveDark={deriveDark}
             />
           )}
           {panel === "shape" && (
@@ -417,6 +420,11 @@ export function Workspace() {
           toggleCompare={() =>
             workspace.setView(
               workspace.view === "compare" ? "canvas" : "compare",
+            )
+          }
+          toggleThemes={() =>
+            workspace.setView(
+              workspace.view === "themes" ? "canvas" : "themes",
             )
           }
           openImport={() => setShowImport(true)}

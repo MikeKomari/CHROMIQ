@@ -3,7 +3,7 @@
 import { Check, RotateCcw, X } from "lucide-react";
 import { useContrast } from "@/hooks/use-contrast";
 import { useUiScale } from "@/hooks/use-ui-scale";
-import type { ContrastLevel, UiScale, WorkspaceSettings } from "@/types/workspace";
+import type { ContrastLevel, ModePreference, UiScale, WorkspaceSettings } from "@/types/workspace";
 
 export function SettingsModal({
   settings,
@@ -55,11 +55,12 @@ export function SettingsModal({
             <select
               value={settings.defaultMode}
               onChange={(event) =>
-                update({ defaultMode: event.target.value as "dark" | "light" })
+                update({ defaultMode: event.target.value as ModePreference })
               }
             >
               <option value="dark">Dark</option>
               <option value="light">Light</option>
+              <option value="system">Match system</option>
             </select>
           </label>
           <div className="settings-row">

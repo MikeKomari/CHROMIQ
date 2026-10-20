@@ -23,12 +23,18 @@ export const fontCatalog: FontEntry[] = [
 ];
 
 export const defaultTokens: Tokens = {
-  accent: "#b7cc6a",
+  accent: "#5f6e1f",
   accentSoft: "#e4ebc4",
   ink: "#10110f",
   paper: "#f4f2ea",
-  muted: "#92958d",
-  line: "#2c3028",
+  muted: "#6b6f66",
+  line: "#d9d6ca",
+  darkAccent: "#b7cc6a",
+  darkAccentSoft: "#2f3a1c",
+  darkInk: "#f1f2e8",
+  darkPaper: "#161a14",
+  darkMuted: "#92988a",
+  darkLine: "#2c3028",
   success: "#7fbfb4",
   warning: "#d9b36a",
   danger: "#d9846b",

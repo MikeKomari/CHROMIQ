@@ -11,10 +11,10 @@
   --sf-ink: var(--preview-ink);
   --sf-muted: var(--preview-muted);
   --sf-accent: var(--preview-accent, #d5ff42);
-  --sf-on-accent: var(--preview-bg);
-  --sf-rule: color-mix(in srgb, var(--preview-ink), transparent 82%);
+  --sf-on-accent: var(--preview-on-accent, var(--preview-bg));
+  --sf-rule: var(--preview-line, color-mix(in srgb, var(--preview-ink), transparent 82%));
   --sf-card: color-mix(in srgb, var(--preview-ink) 5%, var(--preview-bg));
-  --sf-accent-wash: color-mix(in srgb, var(--sf-accent) 16%, var(--preview-bg));
+  --sf-accent-wash: var(--preview-accent-soft, color-mix(in srgb, var(--sf-accent) 16%, var(--preview-bg)));
   --sf-shadow: 0 calc(var(--preview-shadow, 2) * 2px)
     calc(var(--preview-shadow, 2) * 7px)
     rgb(0 0 0 / calc(var(--preview-shadow, 2) * 0.06));

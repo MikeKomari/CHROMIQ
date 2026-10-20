@@ -1,4 +1,4 @@
-import { Command, Contrast, Download, Palette, Search, Sun, X, ZoomIn, ZoomOut } from "lucide-react";
+import { Command, Contrast, Download, Palette, Search, Sun, SunMoon, X, ZoomIn, ZoomOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useContrast } from "@/hooks/use-contrast";
 import { UI_SCALES, useUiScale } from "@/hooks/use-ui-scale";
@@ -7,6 +7,7 @@ export function CommandPalette({
   randomize,
   toggleTheme,
   toggleCompare,
+  toggleThemes,
   openImport,
   openInspect,
   openExport,
@@ -15,6 +16,7 @@ export function CommandPalette({
   randomize: () => void;
   toggleTheme: () => void;
   toggleCompare: () => void;
+  toggleThemes: () => void;
   openImport: () => void;
   openInspect: () => void;
   openExport: () => void;
@@ -42,6 +44,11 @@ export function CommandPalette({
       label: "Compare variants",
       icon: <Command size={15} />,
       run: toggleCompare,
+    },
+    {
+      label: "Preview light and dark side by side",
+      icon: <SunMoon size={15} />,
+      run: toggleThemes,
     },
     { label: "Import tokens", icon: <Download size={15} />, run: openImport },
     {
