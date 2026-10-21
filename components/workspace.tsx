@@ -259,6 +259,8 @@ export function Workspace() {
           setShowExport={setShowExport}
           setShowImport={setShowImport}
           setShowSnapshots={setShowSnapshots}
+          updateTokens={updateTokens}
+          readOnly={readOnly}
         />
         )}
         <motion.aside className="sidebar inspector" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3, delay: 0.15, ease: "easeOut" }}>

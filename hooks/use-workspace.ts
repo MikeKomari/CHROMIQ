@@ -82,6 +82,7 @@ export function useWorkspace() {
   const keepRandomizeWarning = useRef(false);
   const [contrastMessage, setContrastMessage] = useState<string | null>(null);
   const keepContrastMessage = useRef(false);
+  const lastCoalesce = useRef<{ at: number; keys: string } | null>(null);
 
   useEffect(() => {
     const stored = window.localStorage.getItem("prism-tokens");
@@ -203,15 +204,25 @@ export function useWorkspace() {
       window.localStorage.setItem("prism-versions", JSON.stringify(versions));
   }, [versions]);
 
-  const updateTokens: TokenUpdate = (changes) => {
+  const updateTokens: TokenUpdate = (changes, options) => {
     if (readOnly) return;
-    setHistory((previous) => [...previous.slice(-19), tokens]);
+    const keys = Object.keys(changes).sort().join(",");
+    const now = Date.now();
+    const gesture = lastCoalesce.current;
+    const continuing =
+      options?.coalesce === true &&
+      gesture !== null &&
+      gesture.keys === keys &&
+      now - gesture.at < 800;
+    lastCoalesce.current = options?.coalesce ? { at: now, keys } : null;
+    if (!continuing) setHistory((previous) => [...previous.slice(-19), tokens]);
     setFuture([]);
     setTokens((current) => ({ ...current, ...changes }));
     setSaved(false);
   };
 
   const resetTokens = () => {
+    lastCoalesce.current = null;
     setHistory((previous) => [...previous.slice(-19), tokens]);
     setFuture([]);
     setTokens(defaultTokens);
@@ -219,6 +230,7 @@ export function useWorkspace() {
   };
 
   const undo = () => {
+    lastCoalesce.current = null;
     const previous = history.at(-1);
     if (!previous) return;
     setFuture((current) => [...current, tokens]);
@@ -227,6 +239,7 @@ export function useWorkspace() {
   };
 
   const redo = () => {
+    lastCoalesce.current = null;
     const next = future.at(-1);
     if (!next) return;
     setHistory((current) => [...current, tokens]);

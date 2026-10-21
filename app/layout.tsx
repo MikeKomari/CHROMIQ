@@ -6,6 +6,7 @@ import "./restyle.css";
 import "./export-tools.css";
 import "./inspector-tools.css";
 import "./canvas-tools.css";
+import "./ui-controls.css";
 import { contrastBootScript, uiScaleBootScript } from "@/lib/contrast-boot";
 
 export const metadata: Metadata = {

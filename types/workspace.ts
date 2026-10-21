@@ -75,7 +75,11 @@ export type ThemeColors = {
 export type ThemeRole = keyof ThemeColors;
 
 export type Starter = { name: string; meta: string; accent: string };
-export type TokenUpdate = (changes: Partial<Tokens>) => void;
+export type TokenUpdateOptions = { coalesce?: boolean };
+export type TokenUpdate = (
+  changes: Partial<Tokens>,
+  options?: TokenUpdateOptions,
+) => void;
 
 export type Snapshot = {
   id: string;

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import {
   Moon,
@@ -14,6 +14,7 @@ import { loadFontFamily } from "@/lib/fonts";
 import { RAMP_STEPS, colorRamp, type RampStep } from "@/lib/scales";
 import { themeColors, themeRoleLabels, themeTokenKeys } from "@/lib/theme";
 import { fontCatalog } from "@/data/workspace";
+import { ColorPicker, type ColorSwatch } from "@/components/ui/color-picker";
 import type {
   FontEntry,
   HarmonyMode,
@@ -203,6 +204,23 @@ export function ColorPanel({
         ? current.filter((item) => item !== key)
         : [...current, key],
     );
+  const [openToken, setOpenToken] = useState<string | null>(null);
+  const colors = themeColors(tokens, mode);
+  const ramp = colorRamp(colors.accent);
+  const pickerSwatches: ColorSwatch[] = [
+    { label: "Background", value: colors.background },
+    { label: "Text", value: colors.foreground },
+    { label: "Accent", value: colors.accent },
+    { label: "Accent soft", value: colors.accentSoft },
+    { label: "Accent 300", value: ramp[300] },
+    { label: "Accent 500", value: ramp[500] },
+    { label: "Accent 700", value: ramp[700] },
+  ];
+  const pickerProps = (token: string) => ({
+    open: openToken === token,
+    setOpen: (open: boolean) => setOpenToken(open ? token : null),
+    swatches: pickerSwatches,
+  });
   const pairs = semanticPairs(tokens);
   const anyFailing = pairs.some((pair) => contrastRatio(pair.fg, pair.bg) < pair.min);
   return (
@@ -262,6 +280,7 @@ export function ColorPanel({
               updateTokens={updateTokens}
               locked={locked.includes(token)}
               toggleLock={toggleLock}
+              {...pickerProps(token)}
             />
           );
         })}
@@ -280,6 +299,7 @@ export function ColorPanel({
           token="success"
           updateTokens={updateTokens}
           lockable={false}
+          {...pickerProps("success")}
         />
         <ColorRow
           label="Warning"
@@ -287,6 +307,7 @@ export function ColorPanel({
           token="warning"
           updateTokens={updateTokens}
           lockable={false}
+          {...pickerProps("warning")}
         />
         <ColorRow
           label="Danger"
@@ -294,6 +315,7 @@ export function ColorPanel({
           token="danger"
           updateTokens={updateTokens}
           lockable={false}
+          {...pickerProps("danger")}
         />
       </div>
       <label className="harmony-select">
@@ -445,6 +467,9 @@ function ColorRow({
   locked = false,
   toggleLock,
   lockable = true,
+  open,
+  setOpen,
+  swatches,
 }: {
   label: string;
   value: string;
@@ -453,29 +478,57 @@ function ColorRow({
   locked?: boolean;
   toggleLock?: (key: string) => void;
   lockable?: boolean;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  swatches: ColorSwatch[];
 }) {
+  const trigger = useRef<HTMLButtonElement>(null);
   return (
-    <div className="color-row">
-      <input
-        type="color"
-        value={value}
-        onChange={(event) =>
-          updateTokens({ [token]: event.target.value } as Partial<Tokens>)
-        }
-      />
-      <span>
-        <strong>{label}</strong>
-        <small>--prism-{token.replace(/([A-Z])/g, "-$1").toLowerCase()}</small>
-      </span>
-      <code>{value}</code>
-      {lockable && toggleLock && (
+    <div
+      className="color-entry"
+      onKeyDown={(event) => {
+        if (event.key !== "Escape" || !open) return;
+        event.stopPropagation();
+        setOpen(false);
+        trigger.current?.focus();
+      }}
+    >
+      <div className="color-row">
         <button
-          className={`lock-button ${locked ? "locked" : ""}`}
-          onClick={() => toggleLock(token)}
-          aria-label={`${locked ? "Release" : "Lock"} ${label}`}
-        >
-          {locked ? "●" : "○"}
-        </button>
+          ref={trigger}
+          type="button"
+          className="color-row-swatch"
+          style={{ background: value }}
+          aria-label={`Edit ${label}`}
+          aria-expanded={open}
+          onClick={() => setOpen(!open)}
+        />
+        <span>
+          <strong>{label}</strong>
+          <small>--prism-{token.replace(/([A-Z])/g, "-$1").toLowerCase()}</small>
+        </span>
+        <code>{value}</code>
+        {lockable && toggleLock && (
+          <button
+            className={`lock-button ${locked ? "locked" : ""}`}
+            onClick={() => toggleLock(token)}
+            aria-label={`${locked ? "Release" : "Lock"} ${label}`}
+          >
+            {locked ? "●" : "○"}
+          </button>
+        )}
+      </div>
+      {open && (
+        <ColorPicker
+          value={value}
+          label={label}
+          swatches={swatches}
+          onChange={(hex) =>
+            updateTokens({ [token]: hex } as Partial<Tokens>, {
+              coalesce: true,
+            })
+          }
+        />
       )}
     </div>
   );

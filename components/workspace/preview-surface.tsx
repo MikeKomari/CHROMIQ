@@ -35,6 +35,8 @@ export function PreviewSurface({
   const kind = surface in surfaces ? surface : "editorial";
   return (
     <div
+      data-mode={mode}
+      data-variant={variant}
       className={`design-preview ${light ? "light-preview" : "dark-preview"} surface-${kind}`}
       style={
         {
