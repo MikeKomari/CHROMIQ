@@ -1,0 +1,24 @@
+/* canvas-tools: styles for this feature area. Use the token variables from globals.css. */
+
+/* Color-vision simulation: filter the rendered surfaces, not the frame chrome. */
+.vision-filters {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.preview-frame > .design-preview {
+  filter: var(--vision-filter, none);
+}
+.vision-select select {
+  max-width: calc(150px * var(--ui-scale));
+}
+.canvas-note.is-simulated .mono-label {
+  color: var(--coral);
+}
+@media (max-width: 900px) {
+  .vision-select select {
+    max-width: calc(120px * var(--ui-scale));
+  }
+}

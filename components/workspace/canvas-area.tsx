@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   ArrowDownToLine,
   Bookmark,
@@ -11,6 +12,8 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { PreviewSurface } from "@/components/workspace/preview-surface";
+import { VisionFilters } from "@/components/workspace/vision-filters";
+import { visionFilter, visionModes, type VisionMode } from "@/lib/vision";
 import type {
   Mode,
   PreviewSurfaceKind,
@@ -66,6 +69,18 @@ export function CanvasArea({
   setShowImport: (show: boolean) => void;
   setShowSnapshots: (show: boolean) => void;
 }) {
+  const [vision, setVision] = useState<VisionMode>("none");
+  const visionNote = visionModes.find((item) => item.value === vision)?.note ?? "";
+  const simulated = vision !== "none";
+  const size =
+    viewport === "custom"
+      ? `${customWidth} px wide`
+      : viewport === "mobile"
+        ? "390 × 844"
+        : viewport === "tablet"
+          ? "768 × 1024"
+          : "1440 × 900";
+  const zoomLabel = zoom !== 1 ? ` · ${Math.round(zoom * 100)}%` : "";
   return (
     <motion.section className="canvas-area" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1, ease: "easeOut" }}>
       <div className="canvas-toolbar">
@@ -145,6 +160,20 @@ export function CanvasArea({
               <option value="1.5">150%</option>
             </select>
           </label>
+          <label className="toolbar-select vision-select">
+            <span className="sr-only">Color vision simulation</span>
+            <select
+              value={vision}
+              onChange={(event) => setVision(event.target.value as VisionMode)}
+              aria-label="Color vision simulation"
+            >
+              {visionModes.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          </label>
           {viewport === "custom" && (
             <label className="width-input">
               <span className="sr-only">Custom preview width</span>
@@ -196,15 +225,21 @@ export function CanvasArea({
         </div>
       </div>
       <div className="canvas-workspace">
-        <div className="canvas-note">
-          <span className="mono-label">LIVE PREVIEW</span>
-          <span>Changes apply instantly</span>
+        <VisionFilters />
+        <div className={`canvas-note ${simulated ? "is-simulated" : ""}`}>
+          <span className="mono-label">{simulated ? "SIMULATED" : "LIVE PREVIEW"}</span>
+          <span>
+            {simulated
+              ? `${visionNote} · approximation, not a diagnosis`
+              : "Changes apply instantly"}
+          </span>
         </div>
         <div
           className={`preview-frame ${view === "compare" || view === "themes" ? "compare-frame" : ""} viewport-${viewport} zoom-${Math.round(zoom * 100)}`}
           style={
             {
               "--preview-custom-width": `${customWidth}px`,
+              "--vision-filter": visionFilter(vision),
             } as React.CSSProperties
           }
         >
@@ -252,13 +287,11 @@ export function CanvasArea({
         <div className="canvas-footer">
           <span>
             <span className="green-dot" /> Live DOM preview
+            {simulated && ` · simulated ${visionNote.toLowerCase()}`}
           </span>
           <span className="mono-label">
-            {viewport === "mobile"
-              ? "390 × 844"
-              : viewport === "tablet"
-                ? "768 × 1024"
-                : "1440 × 900"}
+            {size}
+            {zoomLabel}
           </span>
         </div>
       </div>

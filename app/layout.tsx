@@ -3,6 +3,9 @@ import "./globals.css";
 import "./surfaces.css";
 import "./landing.css";
 import "./restyle.css";
+import "./export-tools.css";
+import "./inspector-tools.css";
+import "./canvas-tools.css";
 import { contrastBootScript, uiScaleBootScript } from "@/lib/contrast-boot";
 
 export const metadata: Metadata = {

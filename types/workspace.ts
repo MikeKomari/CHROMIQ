@@ -27,7 +27,7 @@ export type WorkspaceSettings = {
   reducedMotion: boolean;
   showGrid: boolean;
   autosave: boolean;
-  exportFormat: "css" | "tailwind" | "shadcn" | "design" | "json";
+  exportFormat: "css" | "tailwind" | "shadcn" | "design" | "json" | "dtcg";
 };
 
 /** Light theme colors live in accent/accentSoft/ink/paper/muted/line; dark theme colors in the dark* pairs. */

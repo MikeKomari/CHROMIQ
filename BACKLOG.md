@@ -163,6 +163,29 @@ Product backlog for the PRISM visual design workbench. Tickets use a Jira-like f
   - Changing a font updates the preview and exports without a reload.
   - Older stored tokens load with font defaults instead of breaking.
 
+### PRISM-207 — Color, type, and spacing scales
+
+- **Priority:** P1
+- **Status:** DONE
+- **User story:** As a frontend developer, I want full scales derived from my tokens so I do not hand-build shades and size steps.
+- **Scope:** `lib/scales.ts`: 11-step accent ramp (50–950), modular type scale (xs–4xl, ratio from the display scale token), spacing scale (0.5–16 × base unit); accent scale strip in the Color panel.
+- **Acceptance criteria:**
+  - Ramps keep the accent hue and always produce `#rrggbb`.
+  - Each ramp swatch is a labelled button that copies its hex.
+  - CSS, Tailwind, and DTCG exports include the scales; Tailwind keys are namespaced (`--text-prism-*`, `--color-prism-accent-*`) so they do not override Tailwind defaults.
+
+### PRISM-208 — Contrast auto-fix
+
+- **Priority:** P1
+- **Status:** DONE
+- **User story:** As a developer, I want a failing contrast pair fixed for me without losing the color's character.
+- **Scope:** `lib/contrast-fix.ts`, per-row "Fix" and section-level "Fix all" in the contrast check.
+- **Acceptance criteria:**
+  - A fix keeps hue and saturation and makes the smallest lightness change that passes.
+  - Fixes prefer candidates that do not break other passing pairs; if one does, a status message names the pair that now fails.
+  - Locked tokens are never changed; unresolved pairs are reported.
+  - Each Fix / Fix all is one undoable change.
+
 ## PRISM-300 — Live preview
 
 ### PRISM-301 — DOM-based sample surface
@@ -207,6 +230,17 @@ Product backlog for the PRISM visual design workbench. Tickets use a Jira-like f
   - Every preview shows its source type.
   - Screenshot previews cannot be edited as if they were live DOM.
   - Reconstructed previews show confidence and unsupported regions.
+
+### PRISM-305 — Color-vision simulation
+
+- **Priority:** P1
+- **Status:** DONE
+- **User story:** As a designer, I want to check my system under common color-vision deficiencies.
+- **Scope:** Canvas toolbar select: protanopia, deuteranopia, tritanopia, achromatopsia (Machado et al. 2009 matrices, linear RGB SVG filters), low-acuity blur.
+- **Acceptance criteria:**
+  - The simulation applies only to the preview, never to tokens or exports.
+  - While active, the canvas note and footer say the preview is simulated and an approximation.
+  - The canvas footer shows the real preview width (including custom width) and zoom.
 
 ## PRISM-400 — Exploration
 
@@ -347,6 +381,25 @@ Product backlog for the PRISM visual design workbench. Tickets use a Jira-like f
   - Preview uses syntax-aware formatting.
   - Warnings show unsupported or failing tokens.
   - Download is disabled only when output cannot be generated safely.
+
+### PRISM-606 — W3C Design Tokens (DTCG) export
+
+- **Priority:** P1
+- **Status:** DONE
+- **User story:** As a design-system maintainer, I want tokens in the DTCG format so Style Dictionary and Tokens Studio can consume them.
+- **Acceptance criteria:**
+  - Export is valid JSON using `$type`/`$value` with light, dark, state, accent ramp, font, dimension, font-size, duration, and number groups.
+  - Token names contain no `.`, `{`, or `}`.
+  - Available as a "Design Tokens" tab and as the default export format option in Workspace settings.
+
+### PRISM-607 — Export modal usability
+
+- **Priority:** P2
+- **Status:** DONE
+- **Acceptance criteria:**
+  - Format tabs are an ARIA tablist with arrow, Home, and End keys, and wrap instead of clipping.
+  - Copy and download stay visible however long the export is; only the code panel scrolls.
+  - The modal opens on the export format chosen in Workspace settings.
 
 ## PRISM-700 — Public URL inspection
 
@@ -527,6 +580,7 @@ Product backlog for the PRISM visual design workbench. Tickets use a Jira-like f
 
 - **Implemented in the local MVP:** PRISM-101, 102, 103, 104, 201, 203, 204, 205, 206, 301, 302, 303, 304, 401, 402, 403, 404, 405, 501–503, 601–605, 701, 703, 801, 803, 804, 901, 902, 903, 904, 704, 705, 905, and 906.
 - **Added:** PRISM-202 (light/dark theme pairs) and PRISM-706 (URL design import).
+- **Added (scales, auto-fix, vision batch):** PRISM-207, 208, 305, 606, 607. Shape panel "Reset" now resets shape tokens (one undoable change, lock-aware). Re-importing a PRISM CSS export no longer warns about the derived scale variables.
 - **Still intentionally open:** cloud storage (802, needs a Supabase project + keys), and headless browser capture (702, needs a browser binary).
 - **Verification run:** `npm run build` passes; `npm run start` serves `/` (landing) and `/workspace` with HTTP 200; private URL inspection is rejected with HTTP 400; restyle loads https://example.com and a `http://127.0.0.1` load shows an error with the controls disabled (browser check).
 - **Build footprint:** First Load JS: `/` ≈ 152 kB, `/workspace` ≈ 176 kB (shared ≈ 103 kB); 12 Google Fonts reduced to 3 upfront (the rest load on demand), which cuts several hundred kB of font payload from first paint.

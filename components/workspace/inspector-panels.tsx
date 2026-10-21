@@ -1,9 +1,18 @@
+import { useEffect, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import { Moon, RotateCcw, Sparkles, Sun, TriangleAlert } from "lucide-react";
+import {
+  Moon,
+  RotateCcw,
+  Sparkles,
+  Sun,
+  TriangleAlert,
+  Wand2,
+} from "lucide-react";
 import { motion } from "motion/react";
 import { contrastRatio, contrastStatus, semanticPairs } from "@/lib/contrast";
 import { loadFontFamily } from "@/lib/fonts";
-import { themeRoleLabels, themeTokenKeys } from "@/lib/theme";
+import { RAMP_STEPS, colorRamp, type RampStep } from "@/lib/scales";
+import { themeColors, themeRoleLabels, themeTokenKeys } from "@/lib/theme";
 import { fontCatalog } from "@/data/workspace";
 import type {
   FontEntry,
@@ -164,6 +173,9 @@ export function ColorPanel({
   setLocked,
   randomize,
   randomizeWarning,
+  contrastMessage,
+  fixContrast,
+  fixAllContrast,
   harmony,
   setHarmony,
   mode,
@@ -176,6 +188,9 @@ export function ColorPanel({
   setLocked: Dispatch<SetStateAction<string[]>>;
   randomize: () => void;
   randomizeWarning: string | null;
+  contrastMessage: string | null;
+  fixContrast: (label: string, theme: Mode) => void;
+  fixAllContrast: () => void;
   harmony: HarmonyMode;
   setHarmony: (harmony: HarmonyMode) => void;
   mode: Mode;
@@ -189,6 +204,7 @@ export function ColorPanel({
         : [...current, key],
     );
   const pairs = semanticPairs(tokens);
+  const anyFailing = pairs.some((pair) => contrastRatio(pair.fg, pair.bg) < pair.min);
   return (
     <div className="panel-content">
       <SectionHeading
@@ -250,6 +266,7 @@ export function ColorPanel({
           );
         })}
       </div>
+      <AccentScale accent={themeColors(tokens, mode).accent} />
       {mode === "dark" && (
         <button className="tiny-link derive-link" onClick={deriveDark}>
           <Moon size={12} /> Derive dark from light
@@ -306,7 +323,26 @@ export function ColorPanel({
         </p>
       )}
       <div className="inspector-divider" />
-      <SectionHeading label="Contrast check" />
+      <SectionHeading
+        label="Contrast check"
+        action={
+          anyFailing && (
+            <button className="tiny-link" onClick={fixAllContrast}>
+              <Wand2 size={12} /> Fix all
+            </button>
+          )
+        }
+      />
+      <div
+        className={contrastMessage ? "panel-warning contrast-message" : undefined}
+        role="status"
+      >
+        {contrastMessage && (
+          <>
+            <TriangleAlert size={13} /> {contrastMessage}
+          </>
+        )}
+      </div>
       {(["light", "dark"] as const).map((theme) => (
         <div key={theme}>
           <div className="contrast-group-label">
@@ -337,12 +373,66 @@ export function ColorPanel({
                     <span className={`pass-badge ${failing ? "fail" : ""}`}>
                       {failing ? "FAIL" : status.toUpperCase()}
                     </span>
+                    {failing && (
+                      <button
+                        type="button"
+                        className="fix-button"
+                        onClick={() => fixContrast(pair.label, theme)}
+                        aria-label={`Fix ${pair.label}, ${theme} theme`}
+                      >
+                        <Wand2 size={12} /> Fix
+                      </button>
+                    )}
                   </div>
                 );
               })}
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+function AccentScale({ accent }: { accent: string }) {
+  const [copied, setCopied] = useState<RampStep | null>(null);
+  useEffect(() => {
+    if (copied === null) return;
+    const timer = window.setTimeout(() => setCopied(null), 1400);
+    return () => window.clearTimeout(timer);
+  }, [copied]);
+  const ramp = colorRamp(accent);
+  const copy = async (step: RampStep, hex: string) => {
+    try {
+      await navigator.clipboard.writeText(hex);
+      setCopied(step);
+    } catch {
+      /* clipboard unavailable; leave the swatch unchanged */
+    }
+  };
+  return (
+    <div className="accent-scale">
+      <div className="contrast-group-label">Accent scale</div>
+      <div className="accent-scale-strip">
+        {RAMP_STEPS.map((step) => (
+          <button
+            key={step}
+            type="button"
+            className={`accent-scale-step ${copied === step ? "copied" : ""}`}
+            onClick={() => copy(step, ramp[step])}
+            aria-label={`Copy accent ${step} ${ramp[step]}`}
+            title={ramp[step]}
+          >
+            <span
+              className="accent-scale-swatch"
+              style={{ background: ramp[step] }}
+            />
+            <span className="accent-scale-label">{step}</span>
+          </button>
+        ))}
+      </div>
+      <span className="accent-scale-status" role="status">
+        {copied === null ? "" : `Copied ${ramp[copied]}`}
+      </span>
     </div>
   );
 }
@@ -394,15 +484,21 @@ function ColorRow({
 export function ShapePanel({
   tokens,
   updateTokens,
+  resetShape,
 }: {
   tokens: Tokens;
   updateTokens: TokenUpdate;
+  resetShape: () => void;
 }) {
   return (
     <div className="panel-content">
       <SectionHeading
         label="Shape language"
-        action={<button className="tiny-link">Reset</button>}
+        action={
+          <button className="tiny-link" onClick={resetShape}>
+            Reset
+          </button>
+        }
       />
       <div className="control-group">
         <div className="control-label">

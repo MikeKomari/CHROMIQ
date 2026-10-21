@@ -147,6 +147,7 @@ export function SettingsModal({
               <option value="shadcn">shadcn/ui</option>
               <option value="design">DESIGN.md</option>
               <option value="json">JSON</option>
+              <option value="dtcg">Design Tokens (DTCG)</option>
             </select>
           </label>
         </div>

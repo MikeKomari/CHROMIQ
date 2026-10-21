@@ -98,6 +98,10 @@ export function Workspace() {
     setHarmony,
     randomize,
     randomizeWarning,
+    contrastMessage,
+    fixContrast,
+    fixAllContrast,
+    resetShape,
     deriveDark,
     readOnly,
   } = workspace;
@@ -298,6 +302,9 @@ export function Workspace() {
               setLocked={setLocked}
               randomize={randomize}
               randomizeWarning={randomizeWarning}
+              contrastMessage={contrastMessage}
+              fixContrast={fixContrast}
+              fixAllContrast={fixAllContrast}
               harmony={harmony}
               setHarmony={setHarmony}
               mode={mode}
@@ -306,7 +313,11 @@ export function Workspace() {
             />
           )}
           {panel === "shape" && (
-            <ShapePanel tokens={tokens} updateTokens={updateTokens} />
+            <ShapePanel
+              tokens={tokens}
+              updateTokens={updateTokens}
+              resetShape={resetShape}
+            />
           )}
           <div className="inspector-divider" />
           <div className="theme-control">
@@ -348,6 +359,7 @@ export function Workspace() {
           exportFiles={workspace.exportFiles}
           exportWarnings={workspace.exportWarnings}
           exportErrors={workspace.exportErrors}
+          initialFormat={workspace.settings.exportFormat}
           copied={workspace.copied}
           copyExport={workspace.copyExport}
           downloadExport={workspace.downloadExport}

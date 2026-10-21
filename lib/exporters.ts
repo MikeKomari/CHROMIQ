@@ -1,5 +1,6 @@
 import { defaultTokens } from "@/data/workspace";
 import { contrastRatio, failingPairs } from "@/lib/contrast";
+import { colorRamp, RAMP_STEPS, spacingScale, typeRatio, typeScaleSteps } from "@/lib/scales";
 import { onAccent, themeColors, themeRoleLabels } from "@/lib/theme";
 import type { Mode, Snapshot, ThemeColors, Tokens } from "@/types/workspace";
 
@@ -10,6 +11,7 @@ export type ExportFiles = {
   design: string;
   json: string;
   project: string;
+  dtcg: string;
 };
 
 type ExportInput = {
@@ -80,14 +82,71 @@ function sharedVars(tokens: Tokens) {
   ];
 }
 
+/** Accent ramp, type scale, and spacing scale derived from the light accent and the type/spacing tokens. */
+function scaleVars(tokens: Tokens) {
+  const ramp = colorRamp(tokens.accent);
+  return [
+    ...RAMP_STEPS.map((step) => `--prism-accent-${step}: ${ramp[step]};`),
+    ...typeScaleSteps(tokens).map(({ step, rem }) => `--prism-text-${step}: ${rem};`),
+    ...spacingScale(tokens).map(({ step, px }) => `--prism-space-${step.replace(".", "-")}: ${px}px;`),
+  ];
+}
+
 function themeBlocks(tokens: Tokens, withShared: boolean) {
   const light = colorVars(themeColors(tokens, "light"));
   const dark = colorVars(themeColors(tokens, "dark"));
   return [
-    `:root {\n${indent([...(withShared ? sharedVars(tokens) : []), ...light])}\n}`,
+    `:root {\n${indent([...(withShared ? [...sharedVars(tokens), ...scaleVars(tokens)] : []), ...light])}\n}`,
     `:root[data-theme="dark"],\n.dark {\n${indent(dark)}\n}`,
     `@media (prefers-color-scheme: dark) {\n  :root:not([data-theme="light"]) {\n${indent(dark, 4)}\n  }\n}`,
   ].join("\n\n");
+}
+
+function buildDtcg(tokens: Tokens, starter: string) {
+  const color = (value: string) => ({ $type: "color", $value: value });
+  const roles = (colors: ThemeColors) => ({
+    background: color(colors.background),
+    foreground: color(colors.foreground),
+    muted: color(colors.muted),
+    line: color(colors.line),
+    accent: color(colors.accent),
+    "accent-soft": color(colors.accentSoft),
+  });
+  const ramp = colorRamp(tokens.accent);
+  const dimension = (value: string) => ({ $type: "dimension", $value: value });
+  return JSON.stringify(
+    {
+      $description: `PRISM export: ${safeName(starter)}. Targets the string-valued DTCG draft format as used by Style Dictionary and Tokens Studio.`,
+      color: {
+        light: roles(themeColors(tokens, "light")),
+        dark: roles(themeColors(tokens, "dark")),
+        state: {
+          success: color(tokens.success),
+          warning: color(tokens.warning),
+          danger: color(tokens.danger),
+        },
+        accent: Object.fromEntries(RAMP_STEPS.map((step) => [String(step), color(ramp[step])])),
+      },
+      font: {
+        display: { $type: "fontFamily", $value: [tokens.displayFont, "sans-serif"] },
+        body: { $type: "fontFamily", $value: [tokens.bodyFont, "sans-serif"] },
+        mono: { $type: "fontFamily", $value: [tokens.monoFont, "monospace"] },
+      },
+      dimension: {
+        radius: dimension(`${tokens.radius}px`),
+        border: dimension(`${tokens.borderWidth}px`),
+        space: Object.fromEntries(spacingScale(tokens).map(({ step, px }) => [step.replace(".", "-"), dimension(`${px}px`)])),
+      },
+      "font-size": Object.fromEntries(typeScaleSteps(tokens).map(({ step, rem }) => [step, dimension(rem)])),
+      duration: { motion: { $type: "duration", $value: `${tokens.motion}ms` } },
+      number: {
+        "line-height": { $type: "number", $value: tokens.lineHeight },
+        "type-ratio": { $type: "number", $value: Number(typeRatio(tokens.typeScale).toFixed(4)) },
+      },
+    },
+    null,
+    2,
+  );
 }
 
 function shadcnVars(colors: ThemeColors) {
@@ -139,6 +198,7 @@ export function buildExports(input: ExportInput): ExportFiles {
   const tokens = safeTokens(input.tokens);
   const css = `/* PRISM export: ${safeName(starter)} */\n${themeBlocks(tokens, true)}`;
 
+  const accentRamp = colorRamp(tokens.accent);
   const tailwind = `/* Tailwind CSS v4 */\n${themeBlocks(tokens, false)}\n\n@theme inline {\n${indent(
     [
       "--color-prism-bg: var(--prism-bg);",
@@ -151,6 +211,9 @@ export function buildExports(input: ExportInput): ExportFiles {
       `--color-prism-success: ${tokens.success};`,
       `--color-prism-warning: ${tokens.warning};`,
       `--color-prism-danger: ${tokens.danger};`,
+      ...RAMP_STEPS.map((step) => `--color-prism-accent-${step}: ${accentRamp[step]};`),
+      ...typeScaleSteps(tokens).map(({ step, rem }) => `--text-prism-${step}: ${rem};`),
+      `--spacing-prism: ${tokens.spacing}px;`,
       `--radius-prism: ${tokens.radius}px;`,
       `--tracking-prism: ${tokens.tracking}em;`,
       `--leading-prism: ${tokens.lineHeight};`,
@@ -188,5 +251,7 @@ export function buildExports(input: ExportInput): ExportFiles {
     2,
   );
 
-  return { css, tailwind, shadcn, design: buildDesign({ ...input, tokens }), json, project };
+  const dtcg = buildDtcg(tokens, starter);
+
+  return { css, tailwind, shadcn, design: buildDesign({ ...input, tokens }), json, project, dtcg };
 }

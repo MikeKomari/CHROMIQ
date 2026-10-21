@@ -16,6 +16,8 @@ const tokenMap: Record<string, keyof Tokens> = {
 
 /** Exported by PRISM but derived from other tokens, so there is nothing to import. */
 const derivedVariables = new Set(["--prism-on-accent"]);
+/** Derived scale variables (accent ramp, type scale, spacing scale steps). `--prism-space` itself is a real token. */
+const derivedPattern = /^--prism-(accent-\d+|text-|space-)/;
 
 const darkKeys: Partial<Record<keyof Tokens, keyof Tokens>> = {
   accent: "darkAccent",
@@ -64,7 +66,7 @@ export function importCss(source: string): ImportResult {
       stack.pop();
     } else {
       const name = match[2];
-      if (derivedVariables.has(name)) continue;
+      if (derivedVariables.has(name) || derivedPattern.test(name)) continue;
       const baseKey = tokenMap[name];
       if (!baseKey) {
         warnings.push(`Skipped unsupported variable ${name}.`);

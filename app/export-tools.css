@@ -1,0 +1,28 @@
+/* export-tools: styles for this feature area. Use the token variables from globals.css. */
+
+/* The code panel scrolls on its own so the copy and download actions stay in view however long the export is. */
+.modal-backdrop > .export-modal {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.export-modal pre {
+  flex: 1 1 auto;
+  min-height: 160px;
+}
+.export-modal .modal-actions {
+  flex: none;
+}
+
+/* Seven export tabs wrap onto a second row on narrow modals instead of hiding behind a scroller. Focus rings sit inside the tab. */
+.export-tabs {
+  flex-wrap: wrap;
+}
+.export-tabs button {
+  white-space: nowrap;
+}
+.export-tabs button:focus-visible,
+.export-modal pre:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}

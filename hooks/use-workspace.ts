@@ -4,7 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { defaultTokens } from "@/data/workspace";
 import { importCss, importJson, importTailwind } from "@/lib/importers";
 import { randomPalette } from "@/lib/colors";
-import { contrastRatio, failingPairs } from "@/lib/contrast";
+import { contrastRatio, failingPairs, semanticPairs } from "@/lib/contrast";
+import { fixAllPairs, fixPair } from "@/lib/contrast-fix";
 import { buildExports } from "@/lib/exporters";
 import { deriveDarkTheme, resolveMode } from "@/lib/theme";
 import { loadFontFamily } from "@/lib/fonts";
@@ -25,6 +26,17 @@ import type {
   Viewport,
   WorkspaceSettings,
 } from "@/types/workspace";
+
+const shapeKeys: (keyof Tokens)[] = [
+  "radius",
+  "spacing",
+  "borderWidth",
+  "shadow",
+  "motion",
+  "breakpointSm",
+  "breakpointMd",
+  "breakpointLg",
+];
 
 const accentKeys: (keyof Tokens)[] = [
   "accent",
@@ -68,6 +80,8 @@ export function useWorkspace() {
   const [readOnly, setReadOnly] = useState(false);
   const [randomizeWarning, setRandomizeWarning] = useState<string | null>(null);
   const keepRandomizeWarning = useRef(false);
+  const [contrastMessage, setContrastMessage] = useState<string | null>(null);
+  const keepContrastMessage = useRef(false);
 
   useEffect(() => {
     const stored = window.localStorage.getItem("prism-tokens");
@@ -152,7 +166,13 @@ export function useWorkspace() {
   useEffect(() => {
     if (keepRandomizeWarning.current) keepRandomizeWarning.current = false;
     else setRandomizeWarning(null);
+    if (keepContrastMessage.current) keepContrastMessage.current = false;
+    else setContrastMessage(null);
   }, [tokens]);
+
+  useEffect(() => {
+    setContrastMessage(null);
+  }, [locked]);
 
   useEffect(() => {
     window.localStorage.setItem("prism-tokens", JSON.stringify(tokens));
@@ -244,6 +264,77 @@ export function useWorkspace() {
     for (const key of Object.keys(derived) as (keyof Tokens)[])
       if (!locked.includes(key))
         (changes[key] as string) = derived[key] as string;
+    if (!Object.keys(changes).length) return;
+    updateTokens(changes);
+  };
+
+  const plural = (count: number) => (count === 1 ? "pair" : "pairs");
+
+  const fixContrast = (label: string, theme: Mode) => {
+    if (readOnly) return;
+    const pair = semanticPairs(tokens).find(
+      (item) => item.label === label && item.theme === theme,
+    );
+    if (!pair || contrastRatio(pair.fg, pair.bg) >= pair.min) return;
+    if (locked.includes(pair.token)) {
+      setContrastMessage(
+        `${pair.label} could not be fixed because ${pair.token} is locked`,
+      );
+      return;
+    }
+    const changes = fixPair(tokens, pair, locked);
+    if (!changes) {
+      setContrastMessage(
+        `No lightness of ${pair.token} reaches ${pair.min}:1 for ${pair.label}`,
+      );
+      return;
+    }
+    const before = failingPairs(tokens);
+    const broken = failingPairs({ ...tokens, ...changes }).find(
+      (after) =>
+        !before.some(
+          (item) => item.label === after.label && item.theme === after.theme,
+        ),
+    );
+    keepContrastMessage.current = true;
+    updateTokens(changes);
+    setContrastMessage(
+      broken
+        ? `Fixed "${pair.label}", but "${broken.label}" (${broken.theme} theme) now fails. Try Fix all.`
+        : null,
+    );
+  };
+
+  const fixAllContrast = () => {
+    if (readOnly) return;
+    const { changes, unresolved } = fixAllPairs(tokens, locked);
+    const lockedCount = unresolved.filter((pair) =>
+      locked.includes(pair.token),
+    ).length;
+    const stuckCount = unresolved.length - lockedCount;
+    const parts: string[] = [];
+    if (lockedCount)
+      parts.push(
+        `${lockedCount} ${plural(lockedCount)} could not be fixed because their tokens are locked`,
+      );
+    if (stuckCount)
+      parts.push(
+        `${stuckCount} ${plural(stuckCount)} could not be fixed by changing lightness`,
+      );
+    const message = parts.length ? parts.join("; ") : null;
+    if (Object.keys(changes).length) {
+      keepContrastMessage.current = true;
+      updateTokens(changes);
+    }
+    setContrastMessage(message);
+  };
+
+  const resetShape = () => {
+    if (readOnly) return;
+    const changes: Partial<Tokens> = {};
+    for (const key of shapeKeys)
+      if (!locked.includes(key) && tokens[key] !== defaultTokens[key])
+        (changes[key] as unknown) = defaultTokens[key];
     if (!Object.keys(changes).length) return;
     updateTokens(changes);
   };
@@ -519,6 +610,10 @@ export function useWorkspace() {
     redo,
     randomize,
     randomizeWarning,
+    contrastMessage,
+    fixContrast,
+    fixAllContrast,
+    resetShape,
     deriveDark,
     exportFiles,
     exportWarnings,
