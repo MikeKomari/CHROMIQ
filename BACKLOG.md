@@ -52,7 +52,7 @@ Product backlog for the PRISM visual design workbench. Tickets use a Jira-like f
 - **Scope:** Top bar, starter rail, canvas area, inspector, responsive tablet/mobile fallback.
 - **Acceptance criteria:**
   - Desktop layout has navigation, canvas, and inspector regions.
-  - The workspace is a static full-viewport shell: the page never scrolls, only the inspector, restyle controls and preview area scroll internally, and the left sidebar scrolls without a visible scrollbar. The layout adapts to browser zoom and narrow viewports (the left sidebar collapses to an icon rail below 900px) instead of scrolling horizontally.
+  - The workspace is a static full-viewport shell: the page never scrolls, only the inspector, restyle controls and preview area scroll internally, and the left sidebar scrolls without a visible scrollbar. The layout adapts to browser zoom and narrow viewports (the context panel overlays the canvas below 1100px and the inspector becomes a drawer below 900px) instead of scrolling horizontally.
   - All interactive elements have visible focus states.
 
 ### PRISM-102 — Workspace project switcher
@@ -88,6 +88,19 @@ Product backlog for the PRISM visual design workbench. Tickets use a Jira-like f
   - Settings do not mutate design tokens.
   - Settings persist per project.
   - Reset settings is separate from reset system.
+
+### PRISM-105 — Builder layout redesign
+
+- **Priority:** P1
+- **Status:** DONE
+- **User story:** As a user, I want a focused builder layout so the canvas has room and every tool has one obvious place.
+- **Scope:** Top bar, icon rail with a collapsible context panel (Starters, Projects, Snapshots, Versions), one-row canvas header, sectioned inspector, violet/graphite palette from DESIGN.md, `components/workspace/shell/` split.
+- **Acceptance criteria:**
+  - The canvas header is one row at 1440x900 and 1280x800 with the panel and inspector open.
+  - Inspector sections collapse independently and remember their state per browser.
+  - Closing a panel or drawer returns focus to its opener; narrow overlays focus their heading.
+  - Read-only shared links disable every control that would change tokens or projects.
+  - No fabricated projects, avatars, or shortcuts.
 
 ## PRISM-200 — Token engine
 
@@ -186,6 +199,14 @@ Product backlog for the PRISM visual design workbench. Tickets use a Jira-like f
   - Locked tokens are never changed; unresolved pairs are reported.
   - Each Fix / Fix all is one undoable change.
 
+### PRISM-209 — Built-in color picker
+
+- **Priority:** P1
+- **Status:** DONE
+- **Acceptance criteria:**
+  - Saturation/brightness square, hue slider, hex field, and swatches, all keyboard operable.
+  - A drag is one undo step (`updateTokens(changes, { coalesce: true })`).
+
 ## PRISM-300 — Live preview
 
 ### PRISM-301 — DOM-based sample surface
@@ -241,6 +262,22 @@ Product backlog for the PRISM visual design workbench. Tickets use a Jira-like f
   - The simulation applies only to the preview, never to tokens or exports.
   - While active, the canvas note and footer say the preview is simulated and an approximation.
   - The canvas footer shows the real preview width (including custom width) and zoom.
+
+### PRISM-306 — Click-to-edit tokens on the canvas
+
+- **Priority:** P1
+- **Status:** DONE
+- **Acceptance criteria:**
+  - The Select tool (V) selects preview elements instead of editing their text.
+  - The popover lists the tokens matched from computed styles, labeled as an inference, and edits the correct theme's keys.
+  - Variant B and shared links show the popover read-only.
+
+### PRISM-307 — Device switcher
+
+- **Priority:** P1
+- **Status:** DONE
+- **Acceptance criteria:**
+  - Desktop, tablet, and mobile radios, an editable width readout that switches to custom, and a zoom stepper.
 
 ## PRISM-400 — Exploration
 
@@ -581,6 +618,7 @@ Product backlog for the PRISM visual design workbench. Tickets use a Jira-like f
 - **Implemented in the local MVP:** PRISM-101, 102, 103, 104, 201, 203, 204, 205, 206, 301, 302, 303, 304, 401, 402, 403, 404, 405, 501–503, 601–605, 701, 703, 801, 803, 804, 901, 902, 903, 904, 704, 705, 905, and 906.
 - **Added:** PRISM-202 (light/dark theme pairs) and PRISM-706 (URL design import).
 - **Added (scales, auto-fix, vision batch):** PRISM-207, 208, 305, 606, 607. Shape panel "Reset" now resets shape tokens (one undoable change, lock-aware). Re-importing a PRISM CSS export no longer warns about the derived scale variables.
+- **Added (builder redesign):** PRISM-105, 209, 306, 307. The workbench light chrome now applies (its selector never matched before).
 - **Still intentionally open:** cloud storage (802, needs a Supabase project + keys), and headless browser capture (702, needs a browser binary).
 - **Verification run:** `npm run build` passes; `npm run start` serves `/` (landing) and `/workspace` with HTTP 200; private URL inspection is rejected with HTTP 400; restyle loads https://example.com and a `http://127.0.0.1` load shows an error with the controls disabled (browser check).
 - **Build footprint:** First Load JS: `/` ≈ 152 kB, `/workspace` ≈ 176 kB (shared ≈ 103 kB); 12 Google Fonts reduced to 3 upfront (the rest load on demand), which cuts several hundred kB of font payload from first paint.

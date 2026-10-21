@@ -11,7 +11,7 @@ export function VersionModal({
   close,
 }: {
   versions: Version[];
-  commitVersion: (name?: string) => Version;
+  commitVersion: (name?: string) => Version | undefined;
   restoreVersion: (version: Version) => void;
   deleteVersion: (id: string) => void;
   compareVersion: (version: Version) => void;

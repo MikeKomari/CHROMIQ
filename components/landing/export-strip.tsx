@@ -20,7 +20,7 @@ export function ExportStrip() {
           </ul>
           <pre className="ld-code" tabIndex={0}>
             <code>{`:root {
-  --accent: #b7cc6a;
+  --accent: #8f72f5;
   --font-display: "Space Grotesk", sans-serif;
   --radius: 12px;
 }`}</code>

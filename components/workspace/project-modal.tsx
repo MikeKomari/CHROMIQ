@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { FolderOpen, Plus, Trash2, X } from "lucide-react";
 import type { Project } from "@/types/workspace";
 
@@ -17,9 +18,21 @@ export function ProjectModal({
   createProject: (name: string) => void;
   loadProject: (project: Project) => void;
   deleteProject: (id: string) => void;
-  saveProject: () => void;
+  saveProject: (name?: string) => void;
   close: () => void;
 }) {
+  const [draft, setDraft] = useState(projectName);
+  // Commit a trimmed, non-empty name; a blank field snaps back to the current name.
+  const commitName = () => {
+    const name = draft.trim();
+    if (!name) {
+      setDraft(projectName);
+      return;
+    }
+    setDraft(name);
+    renameProject(name);
+    saveProject(name);
+  };
   return (
     <div className="modal-backdrop" onClick={close}>
       <section
@@ -43,15 +56,18 @@ export function ProjectModal({
           <label>
             Current project
             <input
-              value={projectName}
-              onChange={(event) => renameProject(event.target.value)}
-              onBlur={saveProject}
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              onBlur={commitName}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") event.currentTarget.blur();
+              }}
             />
           </label>
           <button
             className="primary-button"
             onClick={() => {
-              saveProject();
+              saveProject(draft.trim() || projectName);
               close();
             }}
           >
@@ -94,7 +110,7 @@ export function ProjectModal({
         <button
           className="secondary-button"
           onClick={() => {
-            const name = window.prompt("Name this project", "New system");
+            const name = window.prompt("Name this project", "New system")?.trim();
             if (name) createProject(name);
           }}
         >

@@ -15,7 +15,6 @@ import type {
   HarmonyMode,
   ImportResult,
   Mode,
-  Panel,
   Project,
   PreviewSurfaceKind,
   Snapshot,
@@ -64,7 +63,6 @@ export function useWorkspace() {
     autosave: true,
     exportFormat: "css",
   });
-  const [panel, setPanel] = useState<Panel>("type");
   const [activeStarter, setActiveStarter] = useState("Editorial");
   const [showExport, setShowExport] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -400,6 +398,7 @@ export function useWorkspace() {
   };
 
   const createSnapshot = (name = `Direction ${snapshots.length + 1}`) => {
+    if (readOnly) return;
     const snapshot: Snapshot = {
       id: crypto.randomUUID(),
       name,
@@ -448,6 +447,7 @@ export function useWorkspace() {
   };
 
   const commitVersion = (name?: string) => {
+    if (readOnly) return;
     const version: Version = {
       id: crypto.randomUUID(),
       name: name?.trim() || `Version ${versions.length + 1}`,
@@ -473,21 +473,25 @@ export function useWorkspace() {
   const deleteVersion = (id: string) =>
     setVersions((current) => current.filter((version) => version.id !== id));
 
-  const createShareLink = () => {
+  const createShareLink = async () => {
     const payload = JSON.stringify({ tokens, mode, starter: activeStarter });
     const encoded = btoa(payload)
       .replace(/\+/g, "-")
       .replace(/\//g, "_")
       .replace(/=+$/, "");
     const url = `${window.location.origin}${window.location.pathname}?share=${encoded}`;
-    navigator.clipboard.writeText(url);
-    return url;
+    try {
+      await navigator.clipboard.writeText(url);
+      return true;
+    } catch {
+      return false;
+    }
   };
 
-  const saveProject = () => {
+  const saveProject = (name = projectName) => {
     const project: Project = {
       id: projectId,
-      name: projectName,
+      name,
       updatedAt: new Date().toISOString(),
       tokens: { ...tokens },
       mode,
@@ -502,6 +506,7 @@ export function useWorkspace() {
   };
 
   const createProject = (name: string) => {
+    if (readOnly) return;
     const id = crypto.randomUUID();
     setProjectId(id);
     setProjectName(name.trim() || "Untitled system");
@@ -515,6 +520,7 @@ export function useWorkspace() {
   };
 
   const loadProject = (project: Project) => {
+    if (readOnly) return;
     setProjectId(project.id);
     setProjectName(project.name);
     setTokens(normalizeTokens(project.tokens));
@@ -527,7 +533,9 @@ export function useWorkspace() {
   };
 
   const renameProject = (name: string) => {
-    setProjectName(name.trim() || "Untitled system");
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    setProjectName(trimmed);
     setSaved(false);
   };
   const deleteProject = (id: string) =>
@@ -544,6 +552,14 @@ export function useWorkspace() {
           project?: Partial<Project>;
         };
         if (parsed.type === "prism-project" && parsed.project) {
+          if (readOnly) {
+            const result = {
+              tokens: {},
+              warnings: ["This shared system is read-only."],
+            };
+            setImportWarnings(result.warnings);
+            return result;
+          }
           const project = parsed.project;
           const importedTokens = project.tokens;
           if (
@@ -604,8 +620,6 @@ export function useWorkspace() {
     setHarmony,
     settings,
     setSettings,
-    panel,
-    setPanel,
     activeStarter,
     setActiveStarter,
     showExport,

@@ -14,9 +14,6 @@
 .vision-select select {
   max-width: calc(150px * var(--ui-scale));
 }
-.canvas-note.is-simulated .mono-label {
-  color: var(--coral);
-}
 @media (max-width: 900px) {
   .vision-select select {
     max-width: calc(120px * var(--ui-scale));
@@ -25,20 +22,6 @@
 
 .canvas-workspace {
   position: relative;
-}
-
-/* Device switcher: sits in the note row, between the status label and the hint text. */
-.canvas-workspace .canvas-note {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  gap: 4px 12px;
-}
-.canvas-note-text {
-  min-width: 0;
-  overflow: hidden;
-  text-align: right;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .device-switcher {
   display: flex;
@@ -54,7 +37,7 @@
   align-items: center;
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 5px;
+  border-radius: var(--radius-control);
 }
 .device-radios,
 .zoom-stepper {
@@ -71,7 +54,7 @@
   color: var(--muted);
   background: transparent;
   border: 0;
-  border-radius: 3px;
+  border-radius: var(--radius-control);
   font: 500 var(--fs-xs)/1 var(--ui-mono);
 }
 .device-radios button:hover,
@@ -80,8 +63,8 @@
   background: var(--panel-2);
 }
 .device-radios button.active {
-  color: var(--text);
-  background: var(--accent-soft);
+  color: var(--accent-ink);
+  background: var(--accent);
 }
 .zoom-stepper button:disabled {
   opacity: 0.35;
@@ -132,8 +115,8 @@
 
 /* Select tool */
 .tool-toggle.active {
-  color: var(--text);
-  background: var(--accent-soft);
+  color: var(--accent-ink);
+  background: var(--accent);
   border-color: var(--accent);
 }
 .preview-frame.is-selecting .design-preview,
@@ -141,11 +124,11 @@
   cursor: crosshair;
 }
 .preview-frame.is-selecting .design-preview [data-select-hover] {
-  outline: 1px solid var(--accent);
+  outline: 1px dashed var(--select);
   outline-offset: 2px;
 }
 .preview-frame.is-selecting .design-preview [data-select-active] {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--select);
   outline-offset: 2px;
 }
 
@@ -160,8 +143,8 @@
   color: var(--text);
   background: var(--panel);
   border: 1px solid var(--line-strong);
-  border-radius: 6px;
-  box-shadow: 0 12px 36px var(--shadow);
+  border-radius: var(--radius-popover);
+  box-shadow: 0 12px 32px var(--shadow);
   font-size: var(--fs-sm);
 }
 .token-popover:focus {
@@ -233,7 +216,7 @@
   text-align: left;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: var(--radius-control);
 }
 .token-row:hover:not(:disabled),
 .token-row[aria-expanded="true"] {
@@ -248,7 +231,7 @@
   width: 20px;
   height: 20px;
   border: 1px solid var(--line-strong);
-  border-radius: 4px;
+  border-radius: var(--radius-control);
 }
 .token-row-text {
   display: flex;
@@ -298,7 +281,7 @@
   color: var(--text);
   background: var(--panel-2);
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: var(--radius-control);
   font: var(--fs-sm) var(--ui-font);
 }
 .token-field select:disabled,
@@ -315,19 +298,4 @@
   color: var(--muted);
   border-top: 1px solid var(--line);
   font-size: var(--fs-2xs);
-}
-
-@media (max-width: 1100px) {
-  .canvas-workspace .canvas-note {
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
-  .canvas-note-text {
-    display: none;
-  }
-}
-@media (max-width: 700px) {
-  .canvas-workspace .canvas-note {
-    grid-template-columns: minmax(0, 1fr);
-    justify-items: center;
-  }
 }

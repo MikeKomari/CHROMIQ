@@ -20,7 +20,7 @@ export function SnapshotModal({
   close,
 }: {
   snapshots: Snapshot[];
-  createSnapshot: (name?: string) => Snapshot;
+  createSnapshot: (name?: string) => Snapshot | undefined;
   restoreSnapshot: (snapshot: Snapshot) => void;
   renameSnapshot: (id: string, name: string) => void;
   duplicateSnapshot: (id: string) => void;

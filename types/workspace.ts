@@ -1,7 +1,6 @@
 export type Mode = "dark" | "light";
 export type View = "canvas" | "compare" | "themes" | "restyle";
 export type ModePreference = Mode | "system";
-export type Panel = "type" | "color" | "shape";
 export type PreviewSurfaceKind =
   | "editorial"
   | "saas"

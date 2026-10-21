@@ -1,22 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import {
-  Moon,
-  RotateCcw,
-  Sparkles,
-  Sun,
-  TriangleAlert,
-  Wand2,
-} from "lucide-react";
-import { motion } from "motion/react";
-import { contrastRatio, contrastStatus, semanticPairs } from "@/lib/contrast";
-import { loadFontFamily } from "@/lib/fonts";
-import { RAMP_STEPS, colorRamp, type RampStep } from "@/lib/scales";
+import { Moon, Sun, TriangleAlert } from "lucide-react";
+import { colorRamp } from "@/lib/scales";
 import { themeColors, themeRoleLabels, themeTokenKeys } from "@/lib/theme";
 import { fontCatalog } from "@/data/workspace";
-import { ColorPicker, type ColorSwatch } from "@/components/ui/color-picker";
+import type { ColorSwatch } from "@/components/ui/color-picker";
+import { AccentScale, ColorRow } from "@/components/workspace/shell/color-fields";
+import { FontSelect, SliderField } from "@/components/workspace/shell/inspector-fields";
 import type {
-  FontEntry,
   HarmonyMode,
   Mode,
   ThemeRole,
@@ -24,19 +15,10 @@ import type {
   Tokens,
 } from "@/types/workspace";
 
-function SectionHeading({
-  label,
-  action,
-}: {
-  label: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className="section-heading">
-      <span>{label}</span>
-      {action}
-    </div>
-  );
+/** Section bodies for the inspector. The section chrome (header, toggle, action) lives in shell/inspector.tsx. */
+
+function GroupLabel({ children }: { children: React.ReactNode }) {
+  return <div className="contrast-group-label">{children}</div>;
 }
 
 export function TypePanel({
@@ -48,7 +30,6 @@ export function TypePanel({
 }) {
   return (
     <div className="panel-content">
-      <SectionHeading label="Type pairing" />
       <div className="type-specimen">
         <span className="sample-label">Display · {tokens.displayFont}</span>
         <strong style={{ fontFamily: `"${tokens.displayFont}"` }}>Ag</strong>
@@ -59,111 +40,56 @@ export function TypePanel({
           --prism-accent · 0 1 2 3 4 5
         </code>
       </div>
-      <FontSelect
-        label="Display"
-        value={tokens.displayFont}
-        onChange={(value) => updateTokens({ displayFont: value })}
-        options={fontCatalog}
-      />
-      <FontSelect
-        label="Body"
-        value={tokens.bodyFont}
-        onChange={(value) => updateTokens({ bodyFont: value })}
-        options={fontCatalog}
-      />
-      <FontSelect
-        label="Mono"
-        value={tokens.monoFont}
-        onChange={(value) => updateTokens({ monoFont: value })}
-        options={fontCatalog}
-      />
-      <div className="control-group">
-        <div className="control-label">
-          <span>Scale</span>
-          <span className="mono-value">{tokens.typeScale.toFixed(2)}×</span>
-        </div>
-        <input
-          type="range"
-          min="0.8"
-          max="1.3"
-          step="0.01"
-          value={tokens.typeScale}
-          onChange={(event) =>
-            updateTokens({ typeScale: Number(event.target.value) })
-          }
+      <div className="field-grid">
+        <FontSelect
+          label="Display"
+          value={tokens.displayFont}
+          onChange={(value) => updateTokens({ displayFont: value })}
+          options={fontCatalog}
+        />
+        <FontSelect
+          label="Body"
+          value={tokens.bodyFont}
+          onChange={(value) => updateTokens({ bodyFont: value })}
+          options={fontCatalog}
+        />
+        <FontSelect
+          label="Mono"
+          value={tokens.monoFont}
+          onChange={(value) => updateTokens({ monoFont: value })}
+          options={fontCatalog}
         />
       </div>
-      <div className="inspector-divider" />
-      <SectionHeading label="Text rhythm" />
-      <div className="control-group">
-        <div className="control-label">
-          <span>Body line height</span>
-          <span className="mono-value">{tokens.lineHeight.toFixed(2)}</span>
-        </div>
-        <input
-          type="range"
-          min="1.1"
-          max="2"
-          step="0.05"
-          value={tokens.lineHeight}
-          onChange={(event) =>
-            updateTokens({ lineHeight: Number(event.target.value) })
-          }
-        />
-      </div>
-      <div className="control-group">
-        <div className="control-label">
-          <span>Heading tracking</span>
-          <span className="mono-value">{tokens.tracking.toFixed(2)}em</span>
-        </div>
-        <input
-          type="range"
-          min="-0.12"
-          max="0.01"
-          step="0.01"
-          value={tokens.tracking}
-          onChange={(event) =>
-            updateTokens({ tracking: Number(event.target.value) })
-          }
-        />
-      </div>
+      <SliderField
+        label="Scale"
+        value={tokens.typeScale}
+        min={0.8}
+        max={1.3}
+        step={0.01}
+        decimals={2}
+        unit="×"
+        onChange={(typeScale, options) => updateTokens({ typeScale }, options)}
+      />
+      <SliderField
+        label="Line height"
+        value={tokens.lineHeight}
+        min={1.1}
+        max={2}
+        step={0.05}
+        decimals={2}
+        onChange={(lineHeight, options) => updateTokens({ lineHeight }, options)}
+      />
+      <SliderField
+        label="Tracking"
+        value={tokens.tracking}
+        min={-0.12}
+        max={0.01}
+        step={0.01}
+        decimals={2}
+        unit="em"
+        onChange={(tracking, options) => updateTokens({ tracking }, options)}
+      />
     </div>
-  );
-}
-
-function FontSelect({
-  label,
-  value,
-  onChange,
-  options,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: FontEntry[];
-}) {
-  return (
-    <label className="font-select">
-      <span>{label}</span>
-      <select
-        value={value}
-        onChange={(event) => {
-          const next = event.target.value;
-          loadFontFamily(next);
-          onChange(next);
-        }}
-      >
-        {options.map((font) => (
-          <option
-            key={font.name}
-            value={font.name}
-            style={{ fontFamily: `"${font.name}"` }}
-          >
-            {font.name}
-          </option>
-        ))}
-      </select>
-    </label>
   );
 }
 
@@ -172,11 +98,7 @@ export function ColorPanel({
   updateTokens,
   locked,
   setLocked,
-  randomize,
   randomizeWarning,
-  contrastMessage,
-  fixContrast,
-  fixAllContrast,
   harmony,
   setHarmony,
   mode,
@@ -187,11 +109,7 @@ export function ColorPanel({
   updateTokens: TokenUpdate;
   locked: string[];
   setLocked: Dispatch<SetStateAction<string[]>>;
-  randomize: () => void;
   randomizeWarning: string | null;
-  contrastMessage: string | null;
-  fixContrast: (label: string, theme: Mode) => void;
-  fixAllContrast: () => void;
   harmony: HarmonyMode;
   setHarmony: (harmony: HarmonyMode) => void;
   mode: Mode;
@@ -221,18 +139,8 @@ export function ColorPanel({
     setOpen: (open: boolean) => setOpenToken(open ? token : null),
     swatches: pickerSwatches,
   });
-  const pairs = semanticPairs(tokens);
-  const anyFailing = pairs.some((pair) => contrastRatio(pair.fg, pair.bg) < pair.min);
   return (
     <div className="panel-content">
-      <SectionHeading
-        label="Palette"
-        action={
-          <button className="tiny-link" onClick={randomize}>
-            <RotateCcw size={12} /> Randomize
-          </button>
-        }
-      />
       <div
         className="theme-tabs"
         role="radiogroup"
@@ -285,13 +193,13 @@ export function ColorPanel({
           );
         })}
       </div>
-      <AccentScale accent={themeColors(tokens, mode).accent} />
+      <AccentScale accent={colors.accent} />
       {mode === "dark" && (
         <button className="tiny-link derive-link" onClick={deriveDark}>
           <Moon size={12} /> Derive dark from light
         </button>
       )}
-      <SectionHeading label="State colors" />
+      <GroupLabel>State colors</GroupLabel>
       <div className="palette-stack">
         <ColorRow
           label="Success"
@@ -331,204 +239,10 @@ export function ColorPanel({
           <option value="split-complementary">Split-complementary</option>
         </select>
       </label>
-      <motion.button className="randomize-button" whileTap={{ scale: 0.98 }} onClick={randomize}>
-        <Sparkles size={16} />
-        <span>
-          <strong>Find a new direction</strong>
-          <small>Generates accents for both themes</small>
-        </span>
-        <span className="shortcut">⌘ R</span>
-      </motion.button>
       {randomizeWarning && (
         <p className="panel-warning" role="status">
           <TriangleAlert size={13} /> {randomizeWarning}
         </p>
-      )}
-      <div className="inspector-divider" />
-      <SectionHeading
-        label="Contrast check"
-        action={
-          anyFailing && (
-            <button className="tiny-link" onClick={fixAllContrast}>
-              <Wand2 size={12} /> Fix all
-            </button>
-          )
-        }
-      />
-      <div
-        className={contrastMessage ? "panel-warning contrast-message" : undefined}
-        role="status"
-      >
-        {contrastMessage && (
-          <>
-            <TriangleAlert size={13} /> {contrastMessage}
-          </>
-        )}
-      </div>
-      {(["light", "dark"] as const).map((theme) => (
-        <div key={theme}>
-          <div className="contrast-group-label">
-            {theme === "light" ? "Light theme" : "Dark theme"}
-          </div>
-          <div className="palette-stack">
-            {pairs
-              .filter((pair) => pair.theme === theme)
-              .map((pair) => {
-                const ratio = contrastRatio(pair.fg, pair.bg);
-                const failing = ratio < pair.min;
-                const status = failing ? "Fail" : contrastStatus(ratio);
-                return (
-                  <div className="contrast-row" key={`${theme}-${pair.label}`}>
-                    <span
-                      className="contrast-swatch"
-                      style={{ background: pair.bg, color: pair.fg }}
-                    >
-                      Aa
-                    </span>
-                    <span>
-                      <strong>{pair.label}</strong>
-                      <small>
-                        {ratio.toFixed(2)}:1
-                        {failing ? ` · needs ${pair.min}:1` : ""}
-                      </small>
-                    </span>
-                    <span className={`pass-badge ${failing ? "fail" : ""}`}>
-                      {failing ? "FAIL" : status.toUpperCase()}
-                    </span>
-                    {failing && (
-                      <button
-                        type="button"
-                        className="fix-button"
-                        onClick={() => fixContrast(pair.label, theme)}
-                        aria-label={`Fix ${pair.label}, ${theme} theme`}
-                      >
-                        <Wand2 size={12} /> Fix
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function AccentScale({ accent }: { accent: string }) {
-  const [copied, setCopied] = useState<RampStep | null>(null);
-  useEffect(() => {
-    if (copied === null) return;
-    const timer = window.setTimeout(() => setCopied(null), 1400);
-    return () => window.clearTimeout(timer);
-  }, [copied]);
-  const ramp = colorRamp(accent);
-  const copy = async (step: RampStep, hex: string) => {
-    try {
-      await navigator.clipboard.writeText(hex);
-      setCopied(step);
-    } catch {
-      /* clipboard unavailable; leave the swatch unchanged */
-    }
-  };
-  return (
-    <div className="accent-scale">
-      <div className="contrast-group-label">Accent scale</div>
-      <div className="accent-scale-strip">
-        {RAMP_STEPS.map((step) => (
-          <button
-            key={step}
-            type="button"
-            className={`accent-scale-step ${copied === step ? "copied" : ""}`}
-            onClick={() => copy(step, ramp[step])}
-            aria-label={`Copy accent ${step} ${ramp[step]}`}
-            title={ramp[step]}
-          >
-            <span
-              className="accent-scale-swatch"
-              style={{ background: ramp[step] }}
-            />
-            <span className="accent-scale-label">{step}</span>
-          </button>
-        ))}
-      </div>
-      <span className="accent-scale-status" role="status">
-        {copied === null ? "" : `Copied ${ramp[copied]}`}
-      </span>
-    </div>
-  );
-}
-
-function ColorRow({
-  label,
-  value,
-  token,
-  updateTokens,
-  locked = false,
-  toggleLock,
-  lockable = true,
-  open,
-  setOpen,
-  swatches,
-}: {
-  label: string;
-  value: string;
-  token: string;
-  updateTokens: TokenUpdate;
-  locked?: boolean;
-  toggleLock?: (key: string) => void;
-  lockable?: boolean;
-  open: boolean;
-  setOpen: (open: boolean) => void;
-  swatches: ColorSwatch[];
-}) {
-  const trigger = useRef<HTMLButtonElement>(null);
-  return (
-    <div
-      className="color-entry"
-      onKeyDown={(event) => {
-        if (event.key !== "Escape" || !open) return;
-        event.stopPropagation();
-        setOpen(false);
-        trigger.current?.focus();
-      }}
-    >
-      <div className="color-row">
-        <button
-          ref={trigger}
-          type="button"
-          className="color-row-swatch"
-          style={{ background: value }}
-          aria-label={`Edit ${label}`}
-          aria-expanded={open}
-          onClick={() => setOpen(!open)}
-        />
-        <span>
-          <strong>{label}</strong>
-          <small>--prism-{token.replace(/([A-Z])/g, "-$1").toLowerCase()}</small>
-        </span>
-        <code>{value}</code>
-        {lockable && toggleLock && (
-          <button
-            className={`lock-button ${locked ? "locked" : ""}`}
-            onClick={() => toggleLock(token)}
-            aria-label={`${locked ? "Release" : "Lock"} ${label}`}
-          >
-            {locked ? "●" : "○"}
-          </button>
-        )}
-      </div>
-      {open && (
-        <ColorPicker
-          value={value}
-          label={label}
-          swatches={swatches}
-          onChange={(hex) =>
-            updateTokens({ [token]: hex } as Partial<Tokens>, {
-              coalesce: true,
-            })
-          }
-        />
       )}
     </div>
   );
@@ -537,116 +251,64 @@ function ColorRow({
 export function ShapePanel({
   tokens,
   updateTokens,
-  resetShape,
 }: {
   tokens: Tokens;
   updateTokens: TokenUpdate;
-  resetShape: () => void;
 }) {
   return (
     <div className="panel-content">
-      <SectionHeading
-        label="Shape language"
-        action={
-          <button className="tiny-link" onClick={resetShape}>
-            Reset
-          </button>
-        }
+      <SliderField
+        label="Radius"
+        value={tokens.radius}
+        min={0}
+        max={28}
+        unit="px"
+        onChange={(radius, options) => updateTokens({ radius }, options)}
       />
-      <div className="control-group">
-        <div className="control-label">
-          <span>Corner radius</span>
-          <span className="mono-value">{tokens.radius}px</span>
-        </div>
-        <input
-          type="range"
-          min="0"
-          max="28"
-          value={tokens.radius}
-          onChange={(event) =>
-            updateTokens({ radius: Number(event.target.value) })
-          }
-        />
-      </div>
       <div className="radius-demo">
         <div style={{ borderRadius: `${tokens.radius}px` }} />
         <div style={{ borderRadius: `${Math.max(0, tokens.radius - 4)}px` }} />
         <div style={{ borderRadius: `${Math.max(0, tokens.radius - 8)}px` }} />
       </div>
-      <div className="inspector-divider" />
-      <SectionHeading label="Spacing scale" />
-      <div className="control-group">
-        <div className="control-label">
-          <span>Base unit</span>
-          <span className="mono-value">{tokens.spacing}px</span>
-        </div>
-        <input
-          type="range"
-          min="4"
-          max="16"
-          value={tokens.spacing}
-          onChange={(event) =>
-            updateTokens({ spacing: Number(event.target.value) })
-          }
-        />
-      </div>
+      <SliderField
+        label="Border"
+        value={tokens.borderWidth}
+        min={0}
+        max={4}
+        unit="px"
+        onChange={(borderWidth, options) => updateTokens({ borderWidth }, options)}
+      />
+      <SliderField
+        label="Spacing"
+        value={tokens.spacing}
+        min={4}
+        max={16}
+        unit="px"
+        onChange={(spacing, options) => updateTokens({ spacing }, options)}
+      />
       <div className="spacing-bars">
         <span style={{ width: tokens.spacing * 1 }} />
         <span style={{ width: tokens.spacing * 2 }} />
         <span style={{ width: tokens.spacing * 3 }} />
         <span style={{ width: tokens.spacing * 4 }} />
       </div>
-      <div className="inspector-divider" />
-      <div className="control-group">
-        <div className="control-label">
-          <span>Border width</span>
-          <span className="mono-value">{tokens.borderWidth}px</span>
-        </div>
-        <input
-          type="range"
-          min="0"
-          max="4"
-          step="1"
-          value={tokens.borderWidth}
-          onChange={(event) =>
-            updateTokens({ borderWidth: Number(event.target.value) })
-          }
-        />
-      </div>
-      <div className="control-group">
-        <div className="control-label">
-          <span>Elevation</span>
-          <span className="mono-value">{tokens.shadow}</span>
-        </div>
-        <input
-          type="range"
-          min="0"
-          max="4"
-          step="1"
-          value={tokens.shadow}
-          onChange={(event) =>
-            updateTokens({ shadow: Number(event.target.value) })
-          }
-        />
-      </div>
-      <div className="control-group">
-        <div className="control-label">
-          <span>Motion</span>
-          <span className="mono-value">{tokens.motion}ms</span>
-        </div>
-        <input
-          type="range"
-          min="0"
-          max="600"
-          step="20"
-          value={tokens.motion}
-          onChange={(event) =>
-            updateTokens({ motion: Number(event.target.value) })
-          }
-        />
-      </div>
-      <div className="inspector-divider" />
-      <SectionHeading label="Breakpoints" />
+      <SliderField
+        label="Elevation"
+        value={tokens.shadow}
+        min={0}
+        max={4}
+        onChange={(shadow, options) => updateTokens({ shadow }, options)}
+      />
+      <SliderField
+        label="Motion"
+        value={tokens.motion}
+        min={0}
+        max={600}
+        step={20}
+        unit="ms"
+        onChange={(motion, options) => updateTokens({ motion }, options)}
+      />
+      <GroupLabel>Breakpoints</GroupLabel>
       <div className="breakpoint-grid">
         <label>
           SM
@@ -685,4 +347,3 @@ export function ShapePanel({
     </div>
   );
 }
-

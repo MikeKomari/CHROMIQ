@@ -65,10 +65,10 @@ export function ImportModal({
           onChange={(event) => setSource(event.target.value)}
           placeholder={
             kind === "json"
-              ? '{"accent":"#d5ff42","radius":12}'
+              ? '{"accent":"#7f44ff","radius":12}'
               : kind === "tailwind"
                 ? "theme: { colors: { ... } }"
-                : ":root { --prism-accent: #d5ff42; }"
+                : ":root { --prism-accent: #7f44ff; }"
           }
         />
         <div className="import-footer">
