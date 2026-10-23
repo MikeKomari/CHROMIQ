@@ -22,7 +22,7 @@ const REQUEST_DEADLINE_MS = 12_000;
 const EXTRACTION_RESERVE_MS = 2_000;
 const MIN_FETCH_MS = 600;
 const HEX6 = /^#[0-9a-f]{6}$/;
-const USER_AGENT = "PRISM public preview inspector/0.1";
+const USER_AGENT = "CHROMIQ public preview inspector/0.1";
 
 function resolveHttp(href: string, base: URL): URL | null {
   try {

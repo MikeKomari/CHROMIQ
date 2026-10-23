@@ -186,7 +186,7 @@ export function InspectModal({
           </button>
         </div>
         <p className="modal-copy">
-          PRISM fetches public HTML and its stylesheets, never runs the
+          CHROMIQ fetches public HTML and its stylesheets, never runs the
           page&apos;s scripts, and reconstructs a token hint. It never presents
           the result as the original live page.
         </p>
@@ -231,7 +231,7 @@ export function InspectModal({
               <div className="inspect-notice" role="note">
                 <Info size={15} />
                 <span>
-                  Built with JavaScript — PRISM read its stylesheets, but the
+                  Built with JavaScript — CHROMIQ read its stylesheets, but the
                   page itself can&apos;t be shown without scripts.
                 </span>
               </div>

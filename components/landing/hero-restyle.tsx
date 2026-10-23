@@ -55,7 +55,7 @@ export function HeroRestyle() {
             Restyle any website. Then ship the system.
           </h1>
           <p className="ld-lede">
-            Paste a public link. PRISM loads the page in a sandboxed preview and
+            Paste a public link. CHROMIQ loads the page in a sandboxed preview and
             you change its type, spacing and color live, or apply your own
             tokens. Keep what works and export it as code.
           </p>

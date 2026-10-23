@@ -16,7 +16,7 @@ export function BookmarkletBlock() {
       <div className="ld-wrap ld-grid">
         <header className="ld-section-head">
           <p className="ld-kicker">
-            <span>03</span> PRISM on any site
+            <span>03</span> CHROMIQ on any site
           </p>
           <h2 id="bm-title" className="ld-h2">
             Or restyle the site you are already on.
@@ -29,7 +29,7 @@ export function BookmarkletBlock() {
           </p>
           <p>
             Some sites block bookmarklets with strict security policies. On
-            those, use paste-a-link in PRISM instead.
+            those, use paste-a-link in CHROMIQ instead.
           </p>
           <a
             ref={ref}
@@ -40,7 +40,7 @@ export function BookmarkletBlock() {
               setHint("Drag it to your bookmarks bar");
             }}
           >
-            PRISM ↗ Restyle
+            CHROMIQ ↗ Restyle
           </a>
           <p className="ld-hint" role="status">
             {hint}

@@ -68,7 +68,7 @@ export function ImportModal({
               ? '{"accent":"#7f44ff","radius":12}'
               : kind === "tailwind"
                 ? "theme: { colors: { ... } }"
-                : ":root { --prism-accent: #7f44ff; }"
+                : ":root { --chromiq-accent: #7f44ff; }"
           }
         />
         <div className="import-footer">

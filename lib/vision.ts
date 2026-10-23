@@ -53,5 +53,5 @@ export const visionMatrices: Record<
 export function visionFilter(mode: VisionMode): string {
   if (mode === "none") return "none";
   if (mode === "blur") return "blur(1.5px)";
-  return `url(#prism-vision-${mode})`;
+  return `url(#chromiq-vision-${mode})`;
 }

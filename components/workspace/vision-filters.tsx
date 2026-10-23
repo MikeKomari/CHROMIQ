@@ -13,7 +13,7 @@ export function VisionFilters() {
             .concat("0 0 0 1 0")
             .join(" ");
           return (
-            <filter key={name} id={`prism-vision-${name}`} colorInterpolationFilters="linearRGB">
+            <filter key={name} id={`chromiq-vision-${name}`} colorInterpolationFilters="linearRGB">
               <feColorMatrix type="matrix" values={values} />
             </filter>
           );

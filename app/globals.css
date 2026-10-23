@@ -26,7 +26,7 @@
   color-scheme: dark;
 }
 :root,
-.prism-app {
+.chromiq-app {
   --line-strong: color-mix(in srgb, var(--text) 16%, var(--line));
   --dim: color-mix(in srgb, var(--muted) 60%, var(--bg));
   --accent-soft: color-mix(in srgb, var(--accent) 14%, var(--panel));
@@ -130,7 +130,7 @@ button:disabled {
   cursor: default;
   opacity: 0.35;
 }
-.prism-app {
+.chromiq-app {
   position: relative;
   height: 100vh;
   height: 100dvh;
@@ -1329,7 +1329,7 @@ input[type="range"] {
 .spin {
   animation: spin 1s linear infinite;
 }
-.prism-app.is-light {
+.chromiq-app.is-light {
   --bg: #f1f1f5;
   --bg-deep: #e7e7ed;
   --panel: #f6f6f9;
@@ -1347,7 +1347,7 @@ input[type="range"] {
   --shadow: rgba(20, 20, 40, 0.12);
   color-scheme: light;
 }
-:root[data-contrast="high"] .prism-app.is-light {
+:root[data-contrast="high"] .chromiq-app.is-light {
   --bg: #f6f6f9;
   --bg-deep: #ececf1;
   --panel: #fafafc;

@@ -2,22 +2,22 @@ import { defaultTokens } from "@/data/workspace";
 import type { ImportResult, Tokens } from "@/types/workspace";
 
 const tokenMap: Record<string, keyof Tokens> = {
-  "--prism-accent": "accent",
-  "--prism-accent-soft": "accentSoft",
-  "--prism-bg": "paper",
-  "--prism-paper": "paper",
-  "--prism-fg": "ink",
-  "--prism-ink": "ink",
-  "--prism-muted": "muted",
-  "--prism-line": "line",
-  "--prism-radius": "radius",
-  "--prism-space": "spacing",
+  "--chromiq-accent": "accent",
+  "--chromiq-accent-soft": "accentSoft",
+  "--chromiq-bg": "paper",
+  "--chromiq-paper": "paper",
+  "--chromiq-fg": "ink",
+  "--chromiq-ink": "ink",
+  "--chromiq-muted": "muted",
+  "--chromiq-line": "line",
+  "--chromiq-radius": "radius",
+  "--chromiq-space": "spacing",
 };
 
-/** Exported by PRISM but derived from other tokens, so there is nothing to import. */
-const derivedVariables = new Set(["--prism-on-accent"]);
-/** Derived scale variables (accent ramp, type scale, spacing scale steps). `--prism-space` itself is a real token. */
-const derivedPattern = /^--prism-(accent-\d+|text-|space-)/;
+/** Exported by CHROMIQ but derived from other tokens, so there is nothing to import. */
+const derivedVariables = new Set(["--chromiq-on-accent"]);
+/** Derived scale variables (accent ramp, type scale, spacing scale steps). `--chromiq-space` itself is a real token. */
+const derivedPattern = /^--chromiq-(accent-\d+|text-|space-)/;
 
 const darkKeys: Partial<Record<keyof Tokens, keyof Tokens>> = {
   accent: "darkAccent",
@@ -79,7 +79,7 @@ export function importCss(source: string): ImportResult {
     }
   }
   if (!Object.keys(tokens).length)
-    warnings.push("No PRISM or compatible token variables were found.");
+    warnings.push("No CHROMIQ or compatible token variables were found.");
   return { tokens, warnings };
 }
 

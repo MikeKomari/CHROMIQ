@@ -5,7 +5,7 @@ import { readJson, writeJson } from "@/components/workspace/shell/safe-storage";
 
 export type PanelId = "starters" | "projects" | "snapshots" | "versions";
 
-const STORAGE_KEY = "prism-shell";
+const STORAGE_KEY = "chromiq-shell";
 const panelIds: PanelId[] = ["starters", "projects", "snapshots", "versions"];
 const PANEL_QUERY = "(max-width: 1099px)";
 const INSPECTOR_QUERY = "(max-width: 899px)";

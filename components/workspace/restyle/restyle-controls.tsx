@@ -286,7 +286,7 @@ export function RestyleControls({
       </fieldset>
       <div className="restyle-actions">
         <button className="restyle-action" onClick={applyTokens} disabled={disabled}>
-          <Sparkles size={14} /> Apply my PRISM tokens
+          <Sparkles size={14} /> Apply my CHROMIQ tokens
         </button>
         <button
           className="restyle-action"

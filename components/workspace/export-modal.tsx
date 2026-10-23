@@ -69,7 +69,7 @@ export function ExportModal({
   };
   const isJson = format === "json" || format === "project" || format === "dtcg";
   const filename =
-    format === "dtcg" ? "prism.tokens.json" : `prism-${format}.${format === "design" ? "md" : isJson ? "json" : "css"}`;
+    format === "dtcg" ? "chromiq.tokens.json" : `chromiq-${format}.${format === "design" ? "md" : isJson ? "json" : "css"}`;
   return (
     <div className="modal-backdrop" onClick={close}>
       <section
@@ -79,7 +79,7 @@ export function ExportModal({
         <div className="modal-header">
           <div>
             <span className="eyebrow">Export system</span>
-            <h2>Take PRISM with you.</h2>
+            <h2>Take CHROMIQ with you.</h2>
           </div>
           <button
             className="icon-button"

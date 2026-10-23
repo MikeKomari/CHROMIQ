@@ -13,7 +13,7 @@ import {
 } from "@/components/workspace/inspector-panels";
 import type { HarmonyMode, Mode, TokenUpdate, Tokens } from "@/types/workspace";
 
-const STORAGE_KEY = "prism-inspector-sections";
+const STORAGE_KEY = "chromiq-inspector-sections";
 type SectionId = "type" | "color" | "shape" | "contrast";
 const sectionIds: SectionId[] = ["type", "color", "shape", "contrast"];
 const defaultOpen: Record<SectionId, boolean> = {

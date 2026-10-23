@@ -1,8 +1,8 @@
-# PRISM agent guide
+# CHROMIQ agent guide
 
 ## Product
 
-PRISM is a browser-first visual design workbench for frontend developers. Users tune a live token system, compare variants, and export implementation-ready CSS, Tailwind, shadcn/ui, and DESIGN.md output.
+CHROMIQ is a browser-first visual design workbench for frontend developers. Users tune a live token system, compare variants, and export implementation-ready CSS, Tailwind, shadcn/ui, and DESIGN.md output.
 
 ## Source of truth
 
@@ -19,7 +19,7 @@ PRISM is a browser-first visual design workbench for frontend developers. Users 
 - Preserve accessible names, visible focus, keyboard interactions, and reduced-motion support.
 - Never invent testimonials, usage statistics, customer logos, ratings, or product claims.
 - Keep the workspace split by responsibility: shell, state hooks, data, token utilities, canvas, preview, inspector panels, and export flows should remain separate files.
-- Prefer shadcn/ui primitives in `components/ui/` for new shared controls. Product-specific styling belongs in PRISM tokens and workspace components.
+- Prefer shadcn/ui primitives in `components/ui/` for new shared controls. Product-specific styling belongs in CHROMIQ tokens and workspace components.
 
 ## Verification
 

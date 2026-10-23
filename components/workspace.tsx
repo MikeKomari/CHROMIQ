@@ -166,7 +166,7 @@ export function Workspace() {
   return (
     <MotionConfig reducedMotion="user">
       <main
-        className={`prism-app ${mode === "light" ? "is-light" : ""} ${workspace.settings.reducedMotion ? "reduce-motion" : ""} ${workspace.settings.showGrid ? "grid-visible" : ""}`}
+        className={`chromiq-app ${mode === "light" ? "is-light" : ""} ${workspace.settings.reducedMotion ? "reduce-motion" : ""} ${workspace.settings.showGrid ? "grid-visible" : ""}`}
       >
         <TopBar
           projectName={workspace.projectName}

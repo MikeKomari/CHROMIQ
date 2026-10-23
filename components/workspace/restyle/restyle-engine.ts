@@ -58,8 +58,8 @@ type Info = {
 };
 
 const MAX_ELEMENTS = 5000;
-const STYLE_ID = "prism-restyle";
-const FONT_LINK_PREFIX = "prism-restyle-font-";
+const STYLE_ID = "chromiq-restyle";
+const FONT_LINK_PREFIX = "chromiq-restyle-font-";
 const ICON_FONT = /icon|awesome|glyph|symbol|material|dashicons|emoji|ionicons|feather|fontello|eicons/i;
 const SIDES = ["top", "right", "bottom", "left"] as const;
 const EXPORT_TAGS = ["h1", "h2", "h3", "h4", "h5", "h6", "p", "li", "a", "button", "small"];
@@ -143,7 +143,7 @@ export function createRestyleEngine(doc: Document) {
   if (!win || !doc.body) return null;
   const infos: Info[] = [];
   const touched = new Map<HTMLElement, Map<string, [string, string]>>();
-  const roleAttrs = ["data-prism-role", "data-prism-kind", "data-prism-strong"];
+  const roleAttrs = ["data-chromiq-role", "data-chromiq-kind", "data-chromiq-strong"];
 
   const snapshot = () => {
     const nodes = [doc.documentElement, ...Array.from(doc.body.querySelectorAll("*"))].slice(
@@ -304,25 +304,25 @@ export function createRestyleEngine(doc: Document) {
     if (state.headingFont) heading.push(`font-family:${fontStack(state.headingFont)} !important`);
     if (state.headingWeight) heading.push(`font-weight:${state.headingWeight} !important`);
     if (state.bodyFont) body.push(`font-family:${fontStack(state.bodyFont)} !important`);
-    if (heading.length) rules.push(`[data-prism-role="h"]{${heading.join(";")}}`);
-    if (body.length) rules.push(`[data-prism-role="b"]{${body.join(";")}}`);
+    if (heading.length) rules.push(`[data-chromiq-role="h"]{${heading.join(";")}}`);
+    if (body.length) rules.push(`[data-chromiq-role="b"]{${body.join(";")}}`);
     if (state.bodyWeight)
-      rules.push(`[data-prism-role="b"]:not([data-prism-strong]){font-weight:${state.bodyWeight} !important}`);
+      rules.push(`[data-chromiq-role="b"]:not([data-chromiq-strong]){font-weight:${state.bodyWeight} !important}`);
     if (state.lineHeight)
-      rules.push(`[data-prism-role="b"]{line-height:${state.lineHeight} !important}`);
+      rules.push(`[data-chromiq-role="b"]{line-height:${state.lineHeight} !important}`);
     if (state.letterSpacing)
       rules.push(
-        `[data-prism-role="h"],[data-prism-role="b"]{letter-spacing:${state.letterSpacing}em !important}`,
+        `[data-chromiq-role="h"],[data-chromiq-role="b"]{letter-spacing:${state.letterSpacing}em !important}`,
       );
     if (state.accent) {
-      rules.push(`a[data-prism-kind="link"]{color:${state.accent} !important}`);
+      rules.push(`a[data-chromiq-kind="link"]{color:${state.accent} !important}`);
       rules.push(
-        `[data-prism-kind="btn"]{background-color:${state.accent} !important;color:${readableInk(state.accent)} !important}`,
+        `[data-chromiq-kind="btn"]{background-color:${state.accent} !important;color:${readableInk(state.accent)} !important}`,
       );
     }
     if (state.radius >= 0)
       rules.push(
-        `[data-prism-kind="btn"],[data-prism-kind="field"]{border-radius:${state.radius}px !important}`,
+        `[data-chromiq-kind="btn"],[data-chromiq-kind="field"]{border-radius:${state.radius}px !important}`,
       );
     return rules.join("\n");
   };
@@ -334,10 +334,10 @@ export function createRestyleEngine(doc: Document) {
     for (const info of infos) {
       const { el } = info;
       if (info.textual && !info.skipFont && info.role !== "m") {
-        el.setAttribute("data-prism-role", info.role);
-        if (info.role === "b" && info.strong) el.setAttribute("data-prism-strong", "1");
+        el.setAttribute("data-chromiq-role", info.role);
+        if (info.role === "b" && info.strong) el.setAttribute("data-chromiq-strong", "1");
       }
-      if (info.kind && !info.skipFont) el.setAttribute("data-prism-kind", info.kind);
+      if (info.kind && !info.skipFont) el.setAttribute("data-chromiq-kind", info.kind);
       if (info.textual) {
         const multiplier =
           (state.textScale / 100) * (info.role === "h" ? state.headingScale / 100 : 1);
@@ -364,7 +364,7 @@ export function createRestyleEngine(doc: Document) {
   };
 
   const exportCss = (state: RestyleState, sourceUrl: string) => {
-    const lines: string[] = [`/* PRISM restyle overrides for ${sourceUrl.replace(/[\r\n]+/g, " ").replace(/\*\//g, "*%2F")} */`];
+    const lines: string[] = [`/* CHROMIQ restyle overrides for ${sourceUrl.replace(/[\r\n]+/g, " ").replace(/\*\//g, "*%2F")} */`];
     const families = [...new Set([state.headingFont, state.bodyFont].filter(Boolean))];
     for (const family of families) lines.push(`@import url("${fontStylesheetUrl(family)}");`);
     if (families.length) lines.push("");

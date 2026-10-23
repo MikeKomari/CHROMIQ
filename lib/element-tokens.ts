@@ -32,16 +32,16 @@ export type ElementTokenMatch =
 
 /** CSS custom property names used by the exports, per color role. */
 export const colorRoleVars: Record<ColorRole, string> = {
-  background: "--prism-bg",
-  foreground: "--prism-fg",
-  muted: "--prism-muted",
-  line: "--prism-line",
-  accent: "--prism-accent",
-  accentSoft: "--prism-accent-soft",
-  onAccent: "--prism-on-accent",
-  success: "--prism-success",
-  warning: "--prism-warning",
-  danger: "--prism-danger",
+  background: "--chromiq-bg",
+  foreground: "--chromiq-fg",
+  muted: "--chromiq-muted",
+  line: "--chromiq-line",
+  accent: "--chromiq-accent",
+  accentSoft: "--chromiq-accent-soft",
+  onAccent: "--chromiq-on-accent",
+  success: "--chromiq-success",
+  warning: "--chromiq-warning",
+  danger: "--chromiq-danger",
 };
 
 const MAX_COLOR_DISTANCE = 6;
@@ -191,7 +191,7 @@ function atRest<T>(el: HTMLElement, read: (style: CSSStyleDeclaration) => T): T 
 }
 
 /**
- * Infer which PRISM tokens an element uses by reading its computed styles.
+ * Infer which CHROMIQ tokens an element uses by reading its computed styles.
  * This is a best-effort inference: colors match exactly first, then within a small RGB distance.
  */
 export function elementTokens(el: HTMLElement, tokens: Tokens, mode: Mode): ElementTokenMatch[] {

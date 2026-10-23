@@ -92,7 +92,7 @@ export function ColorRow({
         />
         <span>
           <strong>{label}</strong>
-          <small>--prism-{token.replace(/([A-Z])/g, "-$1").toLowerCase()}</small>
+          <small>--chromiq-{token.replace(/([A-Z])/g, "-$1").toLowerCase()}</small>
         </span>
         <code>{value}</code>
         {lockable && toggleLock && (

@@ -1,6 +1,6 @@
 const steps = [
-  ["Paste a link", "Works with most public pages. PRISM loads a scripts-off copy in a sandboxed preview, so the site is never modified. Pages built entirely with JavaScript may render incompletely."],
-  ["Tune type and color", "Change font size, fonts, weights, line height, spacing and colors live, or apply your PRISM tokens."],
+  ["Paste a link", "Works with most public pages. CHROMIQ loads a scripts-off copy in a sandboxed preview, so the site is never modified. Pages built entirely with JavaScript may render incompletely."],
+  ["Tune type and color", "Change font size, fonts, weights, line height, spacing and colors live, or apply your CHROMIQ tokens."],
   ["Export override CSS", "Copy the changes as an override stylesheet you can drop into the real project."],
 ] as const;
 

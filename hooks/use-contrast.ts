@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { CONTRAST_STORAGE_KEY as STORAGE_KEY } from "@/lib/contrast-boot";
 import type { ContrastLevel } from "@/types/workspace";
 
-const EVENT = "prism-contrast-change";
+const EVENT = "chromiq-contrast-change";
 
 export function readContrast(): ContrastLevel {
   try {

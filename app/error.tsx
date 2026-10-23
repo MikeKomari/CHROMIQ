@@ -12,7 +12,7 @@ export default function Error({
     <main className="error-screen">
       <div className="error-card">
         <TriangleAlert size={20} />
-        <span className="eyebrow">PRISM recovery</span>
+        <span className="eyebrow">CHROMIQ recovery</span>
         <h1>The workbench hit a rough edge.</h1>
         <p>
           Your local project is still safe. Try rendering this workspace again.

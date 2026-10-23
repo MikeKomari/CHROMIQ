@@ -44,7 +44,7 @@ export function HelpModal({ close }: { close: () => void }) {
             </div>
           ))}
         </dl>
-        <h3 className="help-heading">Working in PRISM</h3>
+        <h3 className="help-heading">Working in CHROMIQ</h3>
         <ul className="help-tips">
           {tips.map((tip) => (
             <li key={tip}>{tip}</li>

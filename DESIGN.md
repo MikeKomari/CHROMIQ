@@ -1,4 +1,4 @@
-# PRISM visual direction
+# CHROMIQ visual direction
 
 ## Mood
 

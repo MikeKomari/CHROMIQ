@@ -35,7 +35,7 @@ export function TopBar({
         <div className="brand-mark" aria-hidden="true">
           <span />
         </div>
-        <strong>PRISM</strong>
+        <strong>CHROMIQ</strong>
       </div>
       <button
         type="button"

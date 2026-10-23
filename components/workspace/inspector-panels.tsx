@@ -37,7 +37,7 @@ export function TypePanel({
           Work with intent, ship with confidence.
         </p>
         <code style={{ fontFamily: `"${tokens.monoFont}"` }}>
-          --prism-accent · 0 1 2 3 4 5
+          --chromiq-accent · 0 1 2 3 4 5
         </code>
       </div>
       <div className="field-grid">

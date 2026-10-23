@@ -29,9 +29,9 @@ const roleLabels: Record<ColorRole, string> = {
 
 const propertyLabels = { background: "background", text: "text", border: "border" } as const;
 const fontVars = {
-  display: "--prism-font-display",
-  body: "--prism-font-body",
-  mono: "--prism-font-mono",
+  display: "--chromiq-font-display",
+  body: "--chromiq-font-body",
+  mono: "--chromiq-font-mono",
 } as const;
 const GAP = 12;
 const EDGE = 8;
@@ -150,7 +150,7 @@ export function TokenPopover({
         </p>
       )}
       <div className="token-popover-body">
-        {empty && <p className="token-popover-empty">This element uses no PRISM tokens directly.</p>}
+        {empty && <p className="token-popover-empty">This element uses no CHROMIQ tokens directly.</p>}
         {colors.length > 0 && (
           <section aria-label="Color">
             <h3>Color</h3>
@@ -202,7 +202,7 @@ export function TokenPopover({
             {radius && (
               <label className="token-slider">
                 <span>
-                  Radius <code>--prism-radius</code>
+                  Radius <code>--chromiq-radius</code>
                 </span>
                 <input
                   type="range"
@@ -221,7 +221,7 @@ export function TokenPopover({
             {spacing && (
               <label className="token-slider">
                 <span>
-                  Spacing <code>--prism-space</code>
+                  Spacing <code>--chromiq-space</code>
                 </span>
                 <input
                   type="range"

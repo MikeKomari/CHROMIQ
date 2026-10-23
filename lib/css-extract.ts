@@ -911,7 +911,7 @@ export function suggestTokens(extraction: Extraction): Suggestion {
     if (match) {
       tokens[`${role}Font` as const] = match;
       matchedFonts++;
-    } else notes.push(`${role[0].toUpperCase()}${role.slice(1)} font "${family}" is not in PRISM's font catalog, so it was left alone.`);
+    } else notes.push(`${role[0].toUpperCase()}${role.slice(1)} font "${family}" is not in CHROMIQ's font catalog, so it was left alone.`);
   }
 
   // Shape
@@ -926,7 +926,7 @@ export function suggestTokens(extraction: Extraction): Suggestion {
 
   if (extraction.unsupported)
     notes.push(
-      `${extraction.unsupported} color declaration${extraction.unsupported === 1 ? "" : "s"} use lab(), lch(), color() or color-mix(), which PRISM cannot read yet.`,
+      `${extraction.unsupported} color declaration${extraction.unsupported === 1 ? "" : "s"} use lab(), lch(), color() or color-mix(), which CHROMIQ cannot read yet.`,
     );
 
   // Contrast checks on what was actually suggested.

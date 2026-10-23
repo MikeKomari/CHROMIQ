@@ -1,4 +1,4 @@
-# PRISM
+# CHROMIQ
 
 **P**review · **R**efine · **I**nspect · **S**tyle & **M**anage
 
@@ -12,13 +12,13 @@ A browser-first visual design workbench for frontend developers. Tune a live tok
 - **Style** — a 12-font Google Fonts catalog (display/body/mono pairing), semantic color tokens including state colors, and a full token model that serializes and exports cleanly.
 - **Manage** — projects, named snapshots (rename/duplicate), local version history (commit/restore/compare), undo/redo, and shareable read-only links. Everything persists in the browser.
 
-## Also in PRISM
+## Also in CHROMIQ
 
 - **Landing page and workspace** — `/` is a landing page with a live restyle demo; the workbench itself lives at `/workspace`.
 - **Reading comfort** — a calm Comfort mode (default) and a High-contrast mode, switchable on the landing page and in the workspace. The choice is remembered in the browser.
 - **Six preview surfaces** — SaaS, dashboard, commerce, docs, editorial, and type specimen, all driven by the same tokens. Text in each surface is editable in place.
-- **Restyle any website** — paste a link and PRISM loads a scripts-off copy through a server proxy (`/api/proxy`: SSRF-checked, size and time limited, rate limited). Change type, colors, accent, and radius live, then copy the override CSS. It is a static preview, not the live site, so pages built entirely with JavaScript may render incompletely and some sites cannot be fetched.
-- **PRISM on any site bookmarklet** — a drag-to-bookmarks-bar button (`public/prism-widget.js`) opens a floating restyle panel over the live page you are on. Sites with strict Content Security Policies can block bookmarklets or Google Fonts; use paste-a-link on those.
+- **Restyle any website** — paste a link and CHROMIQ loads a scripts-off copy through a server proxy (`/api/proxy`: SSRF-checked, size and time limited, rate limited). Change type, colors, accent, and radius live, then copy the override CSS. It is a static preview, not the live site, so pages built entirely with JavaScript may render incompletely and some sites cannot be fetched.
+- **CHROMIQ on any site bookmarklet** — a drag-to-bookmarks-bar button (`public/chromiq-widget.js`) opens a floating restyle panel over the live page you are on. Sites with strict Content Security Policies can block bookmarklets or Google Fonts; use paste-a-link on those.
 
 ## Stack
 
@@ -27,7 +27,7 @@ A browser-first visual design workbench for frontend developers. Tune a live tok
 | Next.js | ^15 | App Router shell and routes |
 | React | ^19 | UI |
 | TypeScript | ^5 | Types |
-| Tailwind CSS | ^4 | Styling, driven by PRISM tokens |
+| Tailwind CSS | ^4 | Styling, driven by CHROMIQ tokens |
 | Lucide React | ^0.468 | Icons |
 | Motion | ^14 | Transitions and micro-animations |
 
@@ -59,7 +59,7 @@ npm run lint
 
 ## Export formats
 
-PRISM exports the active token system to CSS custom properties, Tailwind v4, shadcn/ui variables, a JSON token file, a portable project file, and a generated DESIGN.md summary. Every format is copyable and downloadable, and failing tokens are flagged before download.
+CHROMIQ exports the active token system to CSS custom properties, Tailwind v4, shadcn/ui variables, a JSON token file, a portable project file, and a generated DESIGN.md summary. Every format is copyable and downloadable, and failing tokens are flagged before download.
 
 ## Project structure
 
@@ -69,7 +69,7 @@ components/landing/     landing page sections, live demo, and bookmarklet block
 components/workspace/   shell (topbar, sidebar, canvas, inspector) and modals
 components/workspace/surfaces/  the six token-driven preview surfaces
 components/workspace/restyle/   restyle view, engine, controls, and state
-public/prism-widget.js  the "PRISM on any site" bookmarklet panel
+public/chromiq-widget.js  the "CHROMIQ on any site" bookmarklet panel
 lib/safe-fetch.ts       SSRF-safe fetch used by the inspector and proxy
 lib/url-safety.ts       public-URL and private-address validation
 lib/rate-limit.ts       in-memory rate limiter and concurrency slots
@@ -78,12 +78,12 @@ data/workspace.ts       default tokens, starter presets, and the font catalog
 lib/                    color math, contrast, importers, font loader, validation
 types/workspace.ts      token and workspace types
 DESIGN.md               visual source of truth
-BACKLOG.md              Jira-style product backlog (epics PRISM-100–PRISM-900)
+BACKLOG.md              Jira-style product backlog (epics CHROMIQ-100–CHROMIQ-900)
 ```
 
 ## Design and product
 
-`DESIGN.md` is the source of truth for look and feel; the UI reads from the PRISM token variables rather than hardcoded values. `BACKLOG.md` tracks the product across nine epics, from the workbench shell through export and quality.
+`DESIGN.md` is the source of truth for look and feel; the UI reads from the CHROMIQ token variables rather than hardcoded values. `BACKLOG.md` tracks the product across nine epics, from the workbench shell through export and quality.
 
 ---
 

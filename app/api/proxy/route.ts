@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
       maxBytes: MAX_BYTES,
       maxRedirects: MAX_REDIRECTS,
       headers: {
-        "user-agent": "Mozilla/5.0 (compatible; PRISM restyle preview/0.1)",
+        "user-agent": "Mozilla/5.0 (compatible; CHROMIQ restyle preview/0.1)",
         accept: "text/html,application/xhtml+xml",
       },
     });

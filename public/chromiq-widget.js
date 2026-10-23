@@ -1,7 +1,7 @@
-/* PRISM restyle widget: restyle the live page you are on. Vanilla JS, no dependencies. */
+/* CHROMIQ restyle widget: restyle the live page you are on. Vanilla JS, no dependencies. */
 (function () {
   "use strict";
-  var DOCK_ID = "prism-restyle-dock";
+  var DOCK_ID = "chromiq-restyle-dock";
   if (document.getElementById(DOCK_ID)) return;
 
   var FONTS = [
@@ -103,7 +103,7 @@
       var link = document.createElement("link");
       link.rel = "stylesheet";
       link.href = fontUrl(family);
-      link.setAttribute("data-prism-restyle", "font");
+      link.setAttribute("data-chromiq-restyle", "font");
       var warn = function () {
         showNotice("Could not load " + family + ". This site's security policy may block Google Fonts, so the font will not change.");
       };
@@ -152,7 +152,7 @@
   }
 
   function buildCss() {
-    var out = ["/* PRISM restyle overrides for " + String(location.href).replace(/[\r\n]+/g, " ").replace(/\*\//g, "*%2F") + " */"];
+    var out = ["/* CHROMIQ restyle overrides for " + String(location.href).replace(/[\r\n]+/g, " ").replace(/\*\//g, "*%2F") + " */"];
     var fams = [];
     [state.headingFont, state.bodyFont].forEach(function (f) { if (f && fams.indexOf(f) < 0) fams.push(f); });
     fams.forEach(function (f) { out.push('@import url("' + fontUrl(f) + '");'); });
@@ -318,13 +318,13 @@
     slider("Letter spacing", "letterSpacing", "-0.05", "0.15", "0.005", function (v) { return Number(v).toFixed(3) + "em"; }),
     h("label", {}, [h("span", { class: "row", text: "Accent (links, buttons)" }), accentInput]),
     h("div", { class: "actions" }, [resetBtn, copyBtn]),
-    h("p", { class: "hint", text: "Changes apply to this page only until you close PRISM or reload." })
+    h("p", { class: "hint", text: "Changes apply to this page only until you close CHROMIQ or reload." })
   ]);
 
   var collapseBtn = h("button", { class: "icon", "aria-label": "Collapse panel", "aria-expanded": "true", text: "−" });
-  var closeBtn = h("button", { class: "icon", "aria-label": "Close PRISM and restore the page", text: "×" });
-  var head = h("div", { class: "head" }, [h("span", { class: "title", text: "PRISM · restyle" }), collapseBtn, closeBtn]);
-  var panel = h("div", { class: "panel", role: "region", "aria-label": "PRISM restyle" }, [head, body]);
+  var closeBtn = h("button", { class: "icon", "aria-label": "Close CHROMIQ and restore the page", text: "×" });
+  var head = h("div", { class: "head" }, [h("span", { class: "title", text: "CHROMIQ · restyle" }), collapseBtn, closeBtn]);
+  var panel = h("div", { class: "panel", role: "region", "aria-label": "CHROMIQ restyle" }, [head, body]);
   root.appendChild(panel);
 
   collapseBtn.addEventListener("click", function () {

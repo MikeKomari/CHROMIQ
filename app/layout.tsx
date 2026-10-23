@@ -11,7 +11,7 @@ import "./shell.css";
 import { contrastBootScript, uiScaleBootScript } from "@/lib/contrast-boot";
 
 export const metadata: Metadata = {
-  title: "PRISM: visual systems, made tangible",
+  title: "CHROMIQ: visual systems, made tangible",
   description:
     "A browser-first design workbench for exploring, comparing, and exporting frontend visual systems.",
 };

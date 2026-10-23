@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { UI_SCALE_STORAGE_KEY as STORAGE_KEY } from "@/lib/contrast-boot";
 import type { UiScale } from "@/types/workspace";
 
-const EVENT = "prism-ui-scale-change";
+const EVENT = "chromiq-ui-scale-change";
 export const UI_SCALES: UiScale[] = ["default", "large", "xlarge"];
 
 export function readUiScale(): UiScale {

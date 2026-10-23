@@ -10,8 +10,8 @@ export function LandingNav() {
   return (
     <header className="ld-nav">
       <div className="ld-wrap ld-nav-inner">
-        <Link href="/" className="ld-wordmark" aria-label="PRISM home">
-          PRISM
+        <Link href="/" className="ld-wordmark" aria-label="CHROMIQ home">
+          CHROMIQ
         </Link>
         <nav aria-label="Sections" className="ld-nav-links">
           <a href="#restyle">Restyle</a>

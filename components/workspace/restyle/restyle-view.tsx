@@ -241,7 +241,7 @@ export function RestyleView({
               <Globe2 size={22} aria-hidden="true" />
               <h2>Restyle any website</h2>
               <p>
-                Paste a public URL. PRISM loads a scripts-off copy of the page so you can change its
+                Paste a public URL. CHROMIQ loads a scripts-off copy of the page so you can change its
                 type and colors, then copy the CSS. It is a static preview, not the live site.
               </p>
               <button className="restyle-load" onClick={() => void load("https://example.com")}>

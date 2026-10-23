@@ -83,14 +83,14 @@ export function useWorkspace() {
   const lastCoalesce = useRef<{ at: number; keys: string } | null>(null);
 
   useEffect(() => {
-    const stored = window.localStorage.getItem("prism-tokens");
+    const stored = window.localStorage.getItem("chromiq-tokens");
     if (stored)
       try {
         setTokens(normalizeTokens(JSON.parse(stored) as Partial<Tokens>));
       } catch {
         /* keep defaults */
       }
-    const storedProjects = window.localStorage.getItem("prism-projects");
+    const storedProjects = window.localStorage.getItem("chromiq-projects");
     if (storedProjects)
       try {
         setProjects(JSON.parse(storedProjects) as Project[]);
@@ -98,7 +98,7 @@ export function useWorkspace() {
         /* keep an empty project list */
       }
     let defaultMode: WorkspaceSettings["defaultMode"] = "dark";
-    const storedSettings = window.localStorage.getItem("prism-settings");
+    const storedSettings = window.localStorage.getItem("chromiq-settings");
     if (storedSettings)
       try {
         const parsedSettings = JSON.parse(
@@ -111,14 +111,14 @@ export function useWorkspace() {
         /* keep default preferences */
       }
     let sharedMode = false;
-    const storedLocks = window.localStorage.getItem("prism-locks");
+    const storedLocks = window.localStorage.getItem("chromiq-locks");
     if (storedLocks)
       try {
         setLocked(JSON.parse(storedLocks) as string[]);
       } catch {
         /* keep an empty lock set */
       }
-    const storedVersions = window.localStorage.getItem("prism-versions");
+    const storedVersions = window.localStorage.getItem("chromiq-versions");
     if (storedVersions)
       try {
         setVersions(JSON.parse(storedVersions) as Version[]);
@@ -174,7 +174,7 @@ export function useWorkspace() {
   }, [locked]);
 
   useEffect(() => {
-    window.localStorage.setItem("prism-tokens", JSON.stringify(tokens));
+    window.localStorage.setItem("chromiq-tokens", JSON.stringify(tokens));
     setSaved(true);
   }, [tokens]);
 
@@ -186,20 +186,20 @@ export function useWorkspace() {
 
   useEffect(() => {
     if (projects.length)
-      window.localStorage.setItem("prism-projects", JSON.stringify(projects));
+      window.localStorage.setItem("chromiq-projects", JSON.stringify(projects));
   }, [projects]);
 
   useEffect(() => {
-    window.localStorage.setItem("prism-settings", JSON.stringify(settings));
+    window.localStorage.setItem("chromiq-settings", JSON.stringify(settings));
   }, [settings]);
 
   useEffect(() => {
-    window.localStorage.setItem("prism-locks", JSON.stringify(locked));
+    window.localStorage.setItem("chromiq-locks", JSON.stringify(locked));
   }, [locked]);
 
   useEffect(() => {
     if (versions.length)
-      window.localStorage.setItem("prism-versions", JSON.stringify(versions));
+      window.localStorage.setItem("chromiq-versions", JSON.stringify(versions));
   }, [versions]);
 
   const updateTokens: TokenUpdate = (changes, options) => {
@@ -385,7 +385,7 @@ export function useWorkspace() {
 
   const downloadExport = (
     content = exportFiles.css,
-    filename = "prism-tokens.css",
+    filename = "chromiq-tokens.css",
     type = "text/css",
   ) => {
     const blob = new Blob([content], { type });
@@ -551,7 +551,7 @@ export function useWorkspace() {
           type?: string;
           project?: Partial<Project>;
         };
-        if (parsed.type === "prism-project" && parsed.project) {
+        if (parsed.type === "chromiq-project" && parsed.project) {
           if (readOnly) {
             const result = {
               tokens: {},
