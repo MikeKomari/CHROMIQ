@@ -1,7 +1,13 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { accountsEnabled, accountsFlag, databaseEnabled } from "@/lib/server/features";
 
+// `warnOnce` keeps a module-level set of the messages it has already emitted,
+// and these tests share one instance of the module. Each unrecognised value
+// produces a distinct message, so those warn independently; the "on with no
+// DATABASE_URL" message is a single string, so only the first test to trigger
+// it can assert that it fired. That test is declared before the others that
+// reach the same branch, and the assertions below rely on that order.
 const ORIGINAL = {
   accounts: process.env.CHROMIQ_ACCOUNTS,
   databaseUrl: process.env.DATABASE_URL,
@@ -26,22 +32,45 @@ describe("accountsFlag", () => {
     expect(accountsFlag()).toBe("auto");
   });
 
-  it("treats blank and unrecognised values as auto, rather than guessing", () => {
-    for (const accounts of ["", "   ", "maybe", "yes"]) {
+  it("treats a blank value as auto", () => {
+    for (const accounts of ["", "   "]) {
       env({ accounts });
       expect(accountsFlag()).toBe("auto");
     }
   });
 
-  it.each(["off", "OFF", " Off ", "0", "false"])("reads %o as off", (accounts) => {
-    env({ accounts });
-    expect(accountsFlag()).toBe("off");
-  });
+  it.each(["off", "OFF", " Off ", "0", "false", "no", "disable", "disabled"])(
+    "reads %o as off",
+    (accounts) => {
+      env({ accounts });
+      expect(accountsFlag()).toBe("off");
+    },
+  );
 
-  it.each(["on", "ON", " On ", "1", "true"])("reads %o as on", (accounts) => {
-    env({ accounts });
-    expect(accountsFlag()).toBe("on");
-  });
+  it.each(["on", "ON", " On ", "1", "true", "yes", "enable", "enabled"])(
+    "reads %o as on",
+    (accounts) => {
+      env({ accounts });
+      expect(accountsFlag()).toBe("on");
+    },
+  );
+
+  // The dangerous reading of an unknown value is the silent one: with
+  // DATABASE_URL set, "auto" means enabled, so an operator who wrote
+  // "disabled" or mistyped "of" would get the opposite of what they asked for.
+  // Falling back is still the right behaviour — refusing to boot over a typo is
+  // worse — but it has to be audible.
+  it.each(["maybe", "of", "offf", "enabled!", "true-ish"])(
+    "falls back to auto on %o, but warns",
+    (accounts) => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      env({ accounts });
+      expect(accountsFlag()).toBe("auto");
+      expect(warn).toHaveBeenCalledOnce();
+      expect(warn.mock.calls[0][0]).toContain("CHROMIQ_ACCOUNTS");
+      warn.mockRestore();
+    },
+  );
 });
 
 describe("accountsEnabled", () => {
@@ -58,8 +87,14 @@ describe("accountsEnabled", () => {
   });
 
   it("stays on with the flag on so a misconfigured deploy fails loudly", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     env({ accounts: "on" });
     expect(accountsEnabled()).toBe(true);
+    // Not every route reaches the database, so the 500 alone is not a reliable
+    // signal that the deployment is misconfigured.
+    expect(warn).toHaveBeenCalledOnce();
+    expect(warn.mock.calls[0][0]).toContain("DATABASE_URL");
+    warn.mockRestore();
   });
 });
 

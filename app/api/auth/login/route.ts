@@ -2,7 +2,11 @@ import { NextResponse, type NextRequest } from "next/server";
 import { query, queryOne } from "@/lib/db";
 import { accountsEnabled } from "@/lib/server/features";
 import { hashPassword, needsRehash, verifyPassword } from "@/lib/server/passwords";
-import { createSession, setSessionCookie } from "@/lib/server/sessions";
+import {
+  createSession,
+  pruneExpiredSessions,
+  setSessionCookie,
+} from "@/lib/server/sessions";
 import { rateLimit } from "@/lib/server/rate-limit-db";
 import {
   clientKey,
@@ -69,5 +73,12 @@ export async function POST(request: NextRequest) {
     request.headers.get("user-agent"),
   );
   await setSessionCookie(token, expiresAt);
+
+  // Expired rows had no collector at all, so they accumulated indefinitely
+  // along with the user_agent string each one carries. There is no cron in this
+  // deployment, so this rides along with a sign-in, as share pruning rides
+  // along with a write. It cannot fail the request.
+  await pruneExpiredSessions();
+
   return NextResponse.json({ user: { id: identity.user_id, email: identity.email } });
 }

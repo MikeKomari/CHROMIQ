@@ -88,10 +88,17 @@ export async function getSessionUser(): Promise<SessionUser | null> {
 export async function destroySession() {
   const store = await cookies();
   const token = store.get(SESSION_COOKIE)?.value;
-  if (token) {
-    await query(`DELETE FROM sessions WHERE token_hash = $1`, [hashToken(token)]);
+  try {
+    if (token) {
+      await query(`DELETE FROM sessions WHERE token_hash = $1`, [hashToken(token)]);
+    }
+  } finally {
+    // The cookie goes even if the delete failed. A database outage used to
+    // leave the browser signed in: the route threw before reaching this line,
+    // so the user saw an error and kept a working session cookie. Dropping the
+    // cookie first is the half that is always safe to do.
+    await clearSessionCookie();
   }
-  await clearSessionCookie();
 }
 
 /** Signs every other device out, keeping the current session alive. */
@@ -104,7 +111,17 @@ export async function destroyOtherSessions(userId: string) {
   );
 }
 
-/** Housekeeping for expired rows; safe to call from any request path. */
+/**
+ * Housekeeping for expired rows; safe to call from any request path.
+ *
+ * Errors are swallowed because every caller is doing this opportunistically
+ * alongside work that has already succeeded, and a failed cleanup must not
+ * turn a successful sign-in into an error.
+ */
 export async function pruneExpiredSessions() {
-  await query(`DELETE FROM sessions WHERE expires_at <= now()`);
+  try {
+    await query(`DELETE FROM sessions WHERE expires_at <= now()`);
+  } catch {
+    /* housekeeping only; never surface this to the caller */
+  }
 }

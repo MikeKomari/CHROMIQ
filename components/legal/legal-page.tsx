@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import "@/app/legal.css";
 
-export const LAST_UPDATED = "2026-10-23";
+export const LAST_UPDATED = "2026-10-26";
 
 /**
  * Where privacy and terms enquiries go.
