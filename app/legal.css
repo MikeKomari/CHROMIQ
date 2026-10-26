@@ -1,0 +1,43 @@
+/* Privacy and Terms. Typography follows the landing page: Space Grotesk, Inter, IBM Plex Mono. */
+.legal {
+  --lg-display: "Space Grotesk", sans-serif;
+  --lg-body: "Inter", system-ui, sans-serif;
+  --lg-mono: "IBM Plex Mono", ui-monospace, monospace;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--lg-body);
+  font-size: 16px;
+  line-height: 1.65;
+}
+.legal *,
+.legal *::before,
+.legal *::after { box-sizing: border-box; }
+.legal a { color: var(--text); text-underline-offset: 3px; }
+.legal a:hover { color: var(--accent-fg); }
+.legal :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: var(--radius-control); }
+.legal h1, .legal h2, .legal h3, .legal p, .legal ul { margin: 0; padding: 0; }
+.legal-wrap { width: 100%; max-width: 760px; margin-inline: auto; padding-inline: clamp(16px, 4vw, 32px); }
+.legal-bar { border-bottom: 1px solid var(--line); background: var(--bg); }
+.legal-bar-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 64px; max-width: 1280px; }
+.legal-wordmark { font: 700 20px var(--lg-display); letter-spacing: 0.18em; text-decoration: none; }
+.legal-nav { display: flex; gap: 24px; font: 500 12px var(--lg-mono); text-transform: uppercase; letter-spacing: 0.08em; }
+.legal-nav a { color: var(--muted); text-decoration: none; padding: 8px 0; }
+.legal-nav a:hover { color: var(--text); }
+.legal-main { padding-block: 40px 96px; }
+.legal-back { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 32px; color: var(--muted); font: 500 12px var(--lg-mono); text-transform: uppercase; letter-spacing: 0.08em; text-decoration: none; }
+.legal h1 { font: 600 clamp(32px, 6vw, 48px)/1.1 var(--lg-display); letter-spacing: -0.03em; }
+.legal-meta { margin-top: 12px; color: var(--muted); font: 500 12px var(--lg-mono); text-transform: uppercase; letter-spacing: 0.08em; }
+.legal-intro { margin-top: 24px; font-size: 18px; color: var(--text); }
+.legal-body { margin-top: 40px; border-top: 1px solid var(--line); }
+.legal-body section { padding-block: 32px 0; }
+.legal-body h2 { font: 600 22px/1.25 var(--lg-display); letter-spacing: -0.01em; margin-bottom: 12px; }
+.legal-body h3 { font: 600 16px/1.4 var(--lg-body); margin: 20px 0 6px; }
+.legal-body p + p,
+.legal-body p + ul,
+.legal-body ul + p { margin-top: 12px; }
+.legal-body ul { list-style: none; display: grid; gap: 8px; }
+.legal-body li { position: relative; padding-left: 20px; }
+.legal-body li::before { content: ""; position: absolute; left: 4px; top: 0.8em; width: 6px; height: 1px; background: var(--muted); }
+.legal-body code { font: 500 0.88em var(--lg-mono); padding: 1px 6px; border: 1px solid var(--line); border-radius: var(--radius-control); background: var(--panel-2); }
+.legal-note { margin-top: 12px; padding: 12px 16px; border: 1px solid var(--line); border-radius: var(--radius-control); background: var(--panel); color: var(--muted); font-size: 14px; }
