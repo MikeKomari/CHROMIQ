@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { databaseConfigured, query } from "@/lib/db";
+import { query } from "@/lib/db";
+import { accountsEnabled } from "@/lib/server/features";
 import { jsonError } from "@/lib/server/http";
 import { clearSessionCookie, getSessionUser } from "@/lib/server/sessions";
 
@@ -8,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 /** The client calls this on boot to decide between local-only and synced mode. */
 export async function GET() {
-  if (!databaseConfigured()) {
+  if (!accountsEnabled()) {
     return NextResponse.json({ user: null, accountsEnabled: false });
   }
   const user = await getSessionUser();
@@ -28,7 +29,7 @@ export async function GET() {
  * client clears its own copy after a successful delete.
  */
 export async function DELETE() {
-  if (!databaseConfigured()) {
+  if (!accountsEnabled()) {
     return jsonError("Accounts are not enabled on this deployment.", 503);
   }
 

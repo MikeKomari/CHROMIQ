@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
-import { databaseConfigured, queryOne } from "@/lib/db";
+import { queryOne } from "@/lib/db";
+import { accountsEnabled } from "@/lib/server/features";
 import { getSessionUser } from "@/lib/server/sessions";
 import { rateLimit } from "@/lib/server/rate-limit-db";
 import { pruneExpiredShares, shareExpiryFrom } from "@/lib/server/shares";
@@ -29,7 +30,7 @@ function makeSlug(length = 10) {
  * require an account.
  */
 export async function POST(request: NextRequest) {
-  if (!databaseConfigured()) {
+  if (!accountsEnabled()) {
     return jsonError("Short links are not enabled on this deployment.", 503);
   }
 

@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { databaseConfigured, query, queryOne } from "@/lib/db";
+import { query, queryOne } from "@/lib/db";
+import { accountsEnabled } from "@/lib/server/features";
 import { hashPassword, needsRehash, verifyPassword } from "@/lib/server/passwords";
 import { createSession, setSessionCookie } from "@/lib/server/sessions";
 import { rateLimit } from "@/lib/server/rate-limit-db";
@@ -15,7 +16,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
-  if (!databaseConfigured()) {
+  if (!accountsEnabled()) {
     return jsonError("Accounts are not enabled on this deployment.", 503);
   }
 

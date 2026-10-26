@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { databaseConfigured, query, queryOne } from "@/lib/db";
+import { query, queryOne } from "@/lib/db";
+import { accountsEnabled } from "@/lib/server/features";
 import { getSessionUser } from "@/lib/server/sessions";
 import { jsonError, readJsonBody } from "@/lib/server/http";
 import { validateProjectPayload } from "@/lib/server/validate-project";
@@ -12,7 +13,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_request: NextRequest, { params }: Params) {
-  if (!databaseConfigured()) return jsonError("Cloud sync is not enabled.", 503);
+  if (!accountsEnabled()) return jsonError("Cloud sync is not enabled.", 503);
   const user = await getSessionUser();
   if (!user) return jsonError("Sign in to see this project.", 401);
 
@@ -32,7 +33,7 @@ export async function GET(_request: NextRequest, { params }: Params) {
 }
 
 export async function PUT(request: NextRequest, { params }: Params) {
-  if (!databaseConfigured()) return jsonError("Cloud sync is not enabled.", 503);
+  if (!accountsEnabled()) return jsonError("Cloud sync is not enabled.", 503);
   const user = await getSessionUser();
   if (!user) return jsonError("Sign in to sync projects.", 401);
 
@@ -79,7 +80,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
 }
 
 export async function DELETE(_request: NextRequest, { params }: Params) {
-  if (!databaseConfigured()) return jsonError("Cloud sync is not enabled.", 503);
+  if (!accountsEnabled()) return jsonError("Cloud sync is not enabled.", 503);
   const user = await getSessionUser();
   if (!user) return jsonError("Sign in to delete projects.", 401);
 

@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { databaseConfigured, query, queryOne } from "@/lib/db";
+import { query, queryOne } from "@/lib/db";
+import { accountsEnabled } from "@/lib/server/features";
 import { jsonError } from "@/lib/server/http";
 import { getSessionUser } from "@/lib/server/sessions";
 
@@ -12,7 +13,7 @@ type Params = { params: Promise<{ slug: string }> };
 
 /** Resolves a short link to the snapshot it was created from. */
 export async function GET(_request: NextRequest, { params }: Params) {
-  if (!databaseConfigured()) {
+  if (!accountsEnabled()) {
     return jsonError("Short links are not enabled on this deployment.", 503);
   }
 
@@ -48,7 +49,7 @@ export async function GET(_request: NextRequest, { params }: Params) {
  * cleaned up by their expiry instead. The privacy page says so in those words.
  */
 export async function DELETE(_request: NextRequest, { params }: Params) {
-  if (!databaseConfigured()) {
+  if (!accountsEnabled()) {
     return jsonError("Short links are not enabled on this deployment.", 503);
   }
 

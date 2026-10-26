@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { databaseConfigured, query } from "@/lib/db";
+import { query } from "@/lib/db";
+import { accountsEnabled } from "@/lib/server/features";
 import { getSessionUser } from "@/lib/server/sessions";
 import { jsonError, readJsonBody } from "@/lib/server/http";
 import {
@@ -11,7 +12,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  if (!databaseConfigured()) return jsonError("Cloud sync is not enabled.", 503);
+  if (!accountsEnabled()) return jsonError("Cloud sync is not enabled.", 503);
   const user = await getSessionUser();
   if (!user) return jsonError("Sign in to see your synced projects.", 401);
 
@@ -26,7 +27,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  if (!databaseConfigured()) return jsonError("Cloud sync is not enabled.", 503);
+  if (!accountsEnabled()) return jsonError("Cloud sync is not enabled.", 503);
   const user = await getSessionUser();
   if (!user) return jsonError("Sign in to sync projects.", 401);
 

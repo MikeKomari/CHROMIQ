@@ -1,11 +1,12 @@
-import { databaseConfigured, queryOne } from "@/lib/db";
+import { queryOne } from "@/lib/db";
+import { databaseEnabled } from "@/lib/server/features";
 import { rateLimit as memoryRateLimit } from "@/lib/rate-limit";
 
 /**
  * Fixed-window rate limiting backed by Postgres, so every serverless instance
- * counts against the same quota. Falls back to the per-process limiter when no
- * database is configured, or when the database is unreachable — a limiter
- * outage must not take the route down with it.
+ * counts against the same quota. Falls back to the per-process limiter when
+ * the database is switched off or unconfigured, or when it is unreachable — a
+ * limiter outage must not take the route down with it.
  *
  * Returns the number of seconds to wait, or 0 when the request is allowed.
  */
@@ -15,7 +16,7 @@ export async function rateLimit(
   limit: number,
   windowMs = 60_000,
 ): Promise<number> {
-  if (!databaseConfigured()) {
+  if (!databaseEnabled()) {
     return memoryRateLimit(bucket, subject, limit, windowMs);
   }
 
@@ -47,7 +48,7 @@ export async function rateLimit(
  * from a request path; there is no cron in this deployment.
  */
 export async function pruneRateLimits(olderThanMs = 10 * 60_000) {
-  if (!databaseConfigured()) return;
+  if (!databaseEnabled()) return;
   try {
     await queryOne(
       `DELETE FROM rate_limits WHERE window_start < $1`,

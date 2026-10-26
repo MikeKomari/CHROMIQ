@@ -22,3 +22,5 @@ There are no tagged releases yet. This section summarizes what exists today.
 - CHROMIQ brand assets, favicon and app icons, web manifest, `robots.txt`, and `sitemap.xml`.
 - Privacy and Terms pages, 404 and global error screens, and a workspace loading state.
 - MIT license, contributing guide, and issue and pull request templates.
+- Optional accounts, cloud sync, short share links, and account deletion, all off unless a database is configured.
+- `CHROMIQ_ACCOUNTS` flag to force accounts and cloud sync on or off independently of `DATABASE_URL`, so the rest of the app can be worked on without a reachable database.

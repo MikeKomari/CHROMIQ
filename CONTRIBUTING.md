@@ -15,6 +15,8 @@ Open http://localhost:3000. The workbench lives at `/workspace`.
 
 The app runs without any environment variables. Accounts and cloud sync need a Postgres database; copy `.env.example` to `.env.local` and fill it in only if you are working on those. Never commit `.env.local`.
 
+If you have a `DATABASE_URL` configured but want to work on the rest of the app without it — or the host is unreachable — set `CHROMIQ_ACCOUNTS=off`. The account, share and project routes then answer 503 immediately instead of waiting out a connection timeout, and the account controls are hidden rather than shown and broken. `npm run migrate` still reads the connection string, so you do not have to delete it.
+
 If `next` crashes with `Bus error (core dumped)` while loading the native SWC binding, an interrupted install left truncated binaries. Run `npm ci` to reinstall them.
 
 ## Before you open a pull request
