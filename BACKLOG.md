@@ -523,8 +523,8 @@ Product backlog for the CHROMIQ visual design workbench. Tickets use a Jira-like
 
 ### CHROMIQ-802 — Cloud project storage
 
-- **Priority:** P2
-- **Status:** BACKLOG
+- **Priority:** P0
+- **Status:** IN PROGRESS
 - **User story:** As a user, I want to access my systems from multiple browsers.
 - **Scope:** Auth, database, project API, autosave, conflict handling.
 - **Acceptance criteria:**
@@ -613,13 +613,123 @@ Product backlog for the CHROMIQ visual design workbench. Tickets use a Jira-like
   - An "Interface text size" setting (Default, Large, Extra large) is available in Workspace settings and the command palette, persists in the browser, and applies before first paint.
   - The static shell never scrolls the document at 1440x900 or 960x600 at any text size, and preview surface sizes are unchanged.
 
+### CHROMIQ-805 — Short read-only share links
+
+- **Priority:** P0
+- **Status:** IN PROGRESS
+- **User story:** As a designer, I want a share link short enough to paste into a chat message.
+- **Reason:** CHROMIQ-803 base64-encodes the whole token system into the query string. Large systems produce links that exceed browser and CDN URL limits.
+- **Scope:** `shares` table, `POST /api/shares`, `GET /api/shares/[slug]`, client resolution of `?s=<slug>`, and a fallback that still reads legacy `?share=` links.
+- **Acceptance criteria:**
+  - A share link is a short slug, not an encoded payload.
+  - Legacy `?share=` links keep working.
+  - Sharing does not require an account.
+  - A share snapshots the system, so the link keeps showing what was shared after the project moves on.
+
+## CHROMIQ-1000 — Production readiness
+
+### CHROMIQ-1001 — Continuous integration
+
+- **Priority:** P0
+- **Status:** IN PROGRESS
+- **Reason:** `deploy.yml` runs only on version tags and never builds before deploying, so a broken build can ship.
+- **Acceptance criteria:**
+  - Lint, type-check, unit tests, and build run on every pull request and on pushes to main.
+  - ESLint is configured and the existing codebase passes.
+  - Pure modules in `lib/` have unit tests covering their failure paths, not only their happy paths.
+
+### CHROMIQ-1002 — Shared rate limiting
+
+- **Priority:** P0
+- **Status:** IN PROGRESS
+- **Reason:** `lib/rate-limit.ts` counts per process, so on serverless each warm instance keeps its own quota and the proxy is effectively unthrottled.
+- **Acceptance criteria:**
+  - Limits are enforced across instances.
+  - A limiter outage degrades to per-instance counting rather than failing the route.
+
+### CHROMIQ-1003 — Search, social, and install metadata
+
+- **Priority:** P0
+- **Status:** IN PROGRESS
+- **Acceptance criteria:**
+  - `metadataBase`, canonical URLs, Open Graph, and Twitter cards are set.
+  - `robots` and `sitemap` cover the real public routes and exclude `/api/`.
+  - The brand icon set and web manifest are wired, including a maskable icon.
+  - A dedicated social card image exists, rather than reusing the square app icon.
+
+### CHROMIQ-1004 — Legal pages
+
+- **Priority:** P0
+- **Status:** BLOCKED — deferred by decision on 2026-10-23, revisit before launch
+- **Reason:** CHROMIQ fetches and re-renders third-party websites through `/api/proxy` and `/api/inspect`, and will store user email addresses and projects once accounts ship. Both of those need published terms and a privacy policy before the app is public.
+
+#### What is actually wrong right now, in plain terms
+
+`/privacy` and `/terms` are written and routed, and their descriptions of the app are accurate. But the contact address printed on both pages is a placeholder, `legal@[domain to be added]`. **It is not a real mailbox.** A user who reads the privacy policy and tries to ask for their data to be deleted has nowhere to write, and a copyright holder who wants content taken down has nowhere to send the notice.
+
+#### The decision that needs making
+
+Pick where those messages should arrive:
+
+1. **A real email address** on a domain you control. Cleanest, and the only option that keeps a user's deletion request private. Needs a mailbox to exist first.
+2. **The public GitHub issue tracker** at `https://github.com/MikeKomari/CHROMIQ/issues`. It exists and works today. Fine for copyright and abuse reports, where a public record is normal. Poor for privacy requests, because it asks a user to post their own email address in public to get their data deleted.
+3. **A split**: GitHub issues for abuse and DMCA, a private email for privacy. Most correct, needs one mailbox.
+
+Separately, a lawyer should read both documents, and decide governing law and jurisdiction, which are deliberately left unwritten.
+
+#### Where the placeholders live
+
+- `components/legal/legal-page.tsx` — the `LEGAL_CONTACT` constant, which both pages render
+- `app/terms/page.tsx` — contact and DMCA section, and the governing-law gap
+- `app/privacy/page.tsx` — account claims to re-verify against the shipped account code
+
+- **Acceptance criteria:**
+  - `/privacy` and `/terms` describe only what the code actually does.
+  - Acceptable use covers the proxy and inspector.
+  - A working abuse and DMCA contact is published, and reaches a real inbox.
+  - Privacy requests have a channel that does not require posting personal data in public.
+  - A lawyer has reviewed both documents.
+
+### CHROMIQ-1005 — Observability
+
+- **Priority:** P1
+- **Status:** BACKLOG
+- **User story:** As the maintainer, I want to know when CHROMIQ breaks for real users, and which features they actually use.
+- **Reason:** Nothing is instrumented today. After launch there is no way to see which exports are used, what share of restyle loads fail, or which sites break the proxy.
+- **Scope:** Error monitoring for client and server, privacy-respecting product analytics, and Web Vitals field reporting.
+- **Acceptance criteria:**
+  - Unhandled client and server errors are reported with enough context to debug, and the error boundary from CHROMIQ-903 reports rather than swallowing.
+  - Proxy and inspector failures are recorded with a reason, so the top failure modes are visible.
+  - Analytics carry no personal data, and the choice of vendor is documented in the privacy policy before it ships.
+  - Core Web Vitals are measured from real sessions, not only from a local build.
+
+### CHROMIQ-1006 — Browser and device matrix
+
+- **Priority:** P1
+- **Status:** BACKLOG
+- **Reason:** CHROMIQ-902 verified one WSL machine. Safari, Firefox, and real phones are unverified, and the bookmarklet is untested against sites with strict CSP.
+- **Acceptance criteria:**
+  - The workbench is verified on current Safari, Firefox, and Chrome, and on a real phone.
+  - The supported browser set is documented in the README.
+  - Bookmarklet behaviour under a strict CSP is documented honestly, including where it cannot work.
+
+### CHROMIQ-1007 — Feedback and changelog
+
+- **Priority:** P2
+- **Status:** BACKLOG
+- **User story:** As a user, I want to report a site that will not load without leaving the app.
+- **Acceptance criteria:**
+  - A feedback route exists in the product, prefilled with the URL that failed where relevant.
+  - A public changelog is published and updated on release.
+
 ## Verified implementation notes
 
 - **Implemented in the local MVP:** CHROMIQ-101, 102, 103, 104, 201, 203, 204, 205, 206, 301, 302, 303, 304, 401, 402, 403, 404, 405, 501–503, 601–605, 701, 703, 801, 803, 804, 901, 902, 903, 904, 704, 705, 905, and 906.
 - **Added:** CHROMIQ-202 (light/dark theme pairs) and CHROMIQ-706 (URL design import).
 - **Added (scales, auto-fix, vision batch):** CHROMIQ-207, 208, 305, 606, 607. Shape panel "Reset" now resets shape tokens (one undoable change, lock-aware). Re-importing a CHROMIQ CSS export no longer warns about the derived scale variables.
 - **Added (builder redesign):** CHROMIQ-105, 209, 306, 307. The workbench light chrome now applies (its selector never matched before).
-- **Still intentionally open:** cloud storage (802, needs a Supabase project + keys), and headless browser capture (702, needs a browser binary).
+- **Still intentionally open:** headless browser capture (702, needs a browser binary).
+- **In progress (production readiness):** 802 and 805 on self-hosted Postgres with reversible migrations under `migrations/`; 1001, 1002, 1003. 1004 is blocked on a contact address and a legal review.
 - **Verification run:** `npm run build` passes; `npm run start` serves `/` (landing) and `/workspace` with HTTP 200; private URL inspection is rejected with HTTP 400; restyle loads https://example.com and a `http://127.0.0.1` load shows an error with the controls disabled (browser check).
 - **Build footprint:** First Load JS: `/` ≈ 152 kB, `/workspace` ≈ 176 kB (shared ≈ 103 kB); 12 Google Fonts reduced to 3 upfront (the rest load on demand), which cuts several hundred kB of font payload from first paint.
 

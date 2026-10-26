@@ -1,19 +1,23 @@
 # CHROMIQ
 
-**P**review · **R**efine · **I**nspect · **S**tyle & **M**anage
+**C**ontrast · **H**armony · **R**adius · **O**utput · **M**otion · **I**nspect · **Q**uality
 
 A browser-first visual design workbench for frontend developers. Tune a live token system, compare directions, and export implementation-ready output in the formats your stack already uses.
 
 ## What each letter does
 
-- **Preview** — a live DOM preview that reacts to every token change. Light and dark surfaces, desktop/tablet/mobile/custom widths, zoom, and a side-by-side compare view.
-- **Refine** — a color, type, and shape inspector: accent direction with harmony modes, WCAG contrast checks with per-pair grades, type pairing, radius, spacing, border, shadow, motion, and breakpoints.
+- **Contrast** — WCAG contrast checks with per-pair grades, an auto-fix for failing pairs, and a color-vision preview.
+- **Harmony** — accent-driven palettes in analogous, complementary, triadic, monochrome, and split-complementary modes, with light/dark theme pairs and semantic state colors.
+- **Radius** — the shape layer: radius, spacing, border width, shadow depth, and breakpoints.
+- **Output** — CSS custom properties, Tailwind v4, shadcn/ui variables, a JSON token file, DTCG, a portable project file, and a generated DESIGN.md.
+- **Motion** — a motion-duration token that drives the preview, plus a reduced-motion setting honored across the UI.
 - **Inspect** — a server-validated URL inspector (SSRF-safe, 8s timeout, 1.5 MB cap) that reconstructs a public page's title, headings, and hex colors with an honest confidence label.
-- **Style** — a 12-font Google Fonts catalog (display/body/mono pairing), semantic color tokens including state colors, and a full token model that serializes and exports cleanly.
-- **Manage** — projects, named snapshots (rename/duplicate), local version history (commit/restore/compare), undo/redo, and shareable read-only links. Everything persists in the browser.
+- **Quality** — failing tokens are flagged before download, and named snapshots, local version history (commit/restore/compare), and undo/redo keep every direction recoverable.
 
 ## Also in CHROMIQ
 
+- **Live preview** — a DOM preview that reacts to every token change: light and dark surfaces, desktop/tablet/mobile/custom widths, zoom, and a side-by-side compare view.
+- **Type system** — a 12-font Google Fonts catalog with display/body/mono pairing, plus type scale, line height, and tracking.
 - **Landing page and workspace** — `/` is a landing page with a live restyle demo; the workbench itself lives at `/workspace`.
 - **Reading comfort** — a calm Comfort mode (default) and a High-contrast mode, switchable on the landing page and in the workspace. The choice is remembered in the browser.
 - **Six preview surfaces** — SaaS, dashboard, commerce, docs, editorial, and type specimen, all driven by the same tokens. Text in each surface is editable in place.
