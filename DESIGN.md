@@ -63,6 +63,40 @@ Rules:
 - Never use pure black or pure white surfaces.
 - Preview surfaces are the user's own tokens and ignore all of the above. The starter systems keep their own palettes.
 
+## Landing surface
+
+Everything above describes the workbench. The landing page at `/` is a separate surface with one deliberate exception to the rules in Color and Shape and depth.
+
+The landing page is a scroll-driven sequence of full-viewport chapters on `--bg-deep`, lit by a single soft violet light source fixed behind the content. Atmospheric light, a gradient-filled wordmark, and one accent-tinted shadow under the demo reel are permitted **here and nowhere else**. The workbench chrome stays flat and glow-free: no wash, no gradient, no glow, as stated in Color.
+
+The reason for the split is that the two surfaces have different jobs. The workbench must stay quiet so the user's own system is the brightest thing on screen. The landing page has eight seconds to make a stranger understand what CHROMIQ is, and atmosphere does work there that flat chrome cannot.
+
+The one exception to the single-accent rule lives here too. The statement that
+explains what CHROMIQ is takes on colour word by word, left to right, as it is
+scrolled through, each word resolving from the body grey to its own hue drawn
+from a six-step spectrum. By the end of the block every word is fully coloured.
+The argument for it is that CHROMIQ is a colour tool, and the sentence that
+claims so demonstrates it. Every hue in the spectrum clears 4.5:1 on
+`--bg-deep`, so the words are readable at every point in the sweep and not only
+at its ends. This sweep is permitted on that one block and nowhere else: no
+other heading, no chapter title, and nothing in the workbench.
+
+Rules that still apply on the landing page:
+
+- Outside the statement sweep, the violet is still the only accent.
+- Text contrast minimums from Color are unchanged.
+- Visible focus rings use `--accent`, as everywhere else.
+- Reveal-on-scroll is decoration only. Under `prefers-reduced-motion`, every chapter renders immediately at full opacity, the demo reel falls back to its poster frame, the parallax layers and the drifting light hold still, and the statement renders fully coloured rather than sweeping to it.
+- Scroll momentum is smoothed with Lenis, which drives the real window scroll rather than transforming a container, so fixed chrome, anchor links and IntersectionObserver keep working. It is destroyed outright under `prefers-reduced-motion`, which returns native scrolling without a reload.
+- Parallax runs on three depths: the atmospheric light drifts furthest (a native `animation-timeline: scroll()` animation, so it costs no JavaScript and degrades to a static light where unsupported), the demo reel lifts as it crosses, and the hero wordmark trails the scroll. Nothing is moved far enough to leave the reader chasing it.
+- Content never depends on the animation running. If JavaScript or IntersectionObserver is unavailable, the page still reads top to bottom.
+
+Structure, in order: the wordmark with a live URL field, the looping demo reel, a short statement of what CHROMIQ is, four numbered chapters, and a closing call to action above the footer. Persistent chrome (mark, workbench link, scroll hint, byline, progress bar) stays fixed while the page scrolls behind it.
+
+The scroll mechanics live in `components/scroll/` and `app/scroll.css`, deliberately free of CHROMIQ-specific imports so they can be extracted to a reusable package later: `scroll-chapter`, `scroll-chrome`, `use-in-view`, `smooth-scroll`, `parallax`, and `color-wash-text`, which takes its palette as a prop rather than reaching for a token. Product-specific styling lives in `app/landing-scroll.css`, including the statement spectrum.
+
+The demo reel's source files live in `public/reel/`, with the recording and encoding contract written down in `public/reel/README.md`. The page ships correctly with those files absent.
+
 ## Typography
 
 Three-role system: a display face for headlines, a body face for running text, and a mono face for values, labels, tokens, and code. The type panel pairs any font from a curated Google Fonts set into these roles. House defaults: Space Grotesk (display), Inter (body), IBM Plex Mono (mono). Avoid generic system UI type for primary text.

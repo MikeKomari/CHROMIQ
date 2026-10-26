@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Landing } from "@/components/landing/landing";
+import { LandingScroll } from "@/components/landing/landing-scroll";
 
 export const metadata: Metadata = {
   title: "CHROMIQ: restyle any website, then ship the system",
@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
-  return <Landing />;
+  return <LandingScroll />;
 }

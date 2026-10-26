@@ -1,0 +1,232 @@
+/* Scroll primitives (components/scroll/).
+   Product-agnostic on purpose: every colour and font here comes from a custom
+   property with a neutral fallback, so this file moves to its own package
+   unchanged. Nothing CHROMIQ-specific belongs in here. */
+
+.sc-chapter {
+  min-height: 100svh;
+  display: grid;
+  align-items: center;
+  padding: clamp(96px, 14vh, 160px) var(--sc-gutter, 24px);
+  position: relative;
+}
+
+/* Visible by default. The hidden state is applied only once the client has
+   mounted and can animate it back in, so a page without JavaScript still
+   reads top to bottom instead of rendering empty sections. */
+.sc-chapter-inner {
+  width: 100%;
+  max-width: var(--sc-measure, 1180px);
+  margin-inline: auto;
+  transition:
+    opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sc-chapter[data-in-view="false"] .sc-chapter-inner {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+.sc-chapter[data-in-view="true"] .sc-chapter-inner {
+  opacity: 1;
+  transform: none;
+}
+
+.sc-chapter[data-align="center"] .sc-chapter-inner {
+  text-align: center;
+  max-width: var(--sc-measure-narrow, 820px);
+}
+
+/* Chapter index, e.g. 03 — 05 */
+.sc-index {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 20px;
+  font-family: var(--sc-font-mono, ui-monospace, monospace);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--sc-dim, #8d97a8);
+}
+
+.sc-chapter[data-align="center"] .sc-index {
+  justify-content: center;
+}
+
+.sc-index-rule {
+  width: 28px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+/* Persistent chrome ------------------------------------------------------- */
+
+.sc-chrome {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  padding: var(--sc-gutter, 24px);
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto 1fr auto;
+  align-items: start;
+}
+
+/* Only the controls themselves take pointer events; the rest of the overlay
+   must not swallow clicks meant for the page behind it. */
+.sc-chrome > * > * {
+  pointer-events: auto;
+}
+
+.sc-chrome-mark {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: start;
+}
+
+.sc-chrome-action {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+}
+
+.sc-chrome-hint {
+  grid-column: 1;
+  grid-row: 3;
+  justify-self: start;
+  align-self: end;
+  font-family: var(--sc-font-mono, ui-monospace, monospace);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sc-dim, #8d97a8);
+  transition: opacity 400ms ease;
+}
+
+.sc-chrome[data-scrolled="true"] .sc-chrome-hint {
+  opacity: 0;
+}
+
+.sc-chrome-note {
+  grid-column: 2;
+  grid-row: 3;
+  justify-self: end;
+  align-self: end;
+  font-family: var(--sc-font-mono, ui-monospace, monospace);
+  font-size: 11px;
+  color: var(--sc-dim, #8d97a8);
+}
+
+.sc-chrome-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--sc-accent, #8f72f5);
+  transform-origin: 0 50%;
+  will-change: transform;
+}
+
+@media (max-width: 720px) {
+  .sc-chrome-hint,
+  .sc-chrome-note {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-chapter[data-in-view="false"] .sc-chapter-inner,
+  .sc-chapter-inner {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .sc-chrome-progress {
+    transition: none;
+  }
+}
+
+/* Smooth scrolling (components/scroll/smooth-scroll.tsx) ------------------- */
+
+/* Lenis needs the document itself to be the scroller and to stop the browser
+   fighting it with its own smooth-scroll implementation. These classes are put
+   on <html> by Lenis itself; without them the page scrolls twice. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* Scroll colour wash (components/scroll/color-wash-text.tsx) --------------- */
+
+/* Registered so the per-word progress resolves to a real number: an unregistered
+   custom property is substituted as text, which still works in calc() but
+   cannot be interpolated or clamped reliably. */
+@property --sc-wash-p {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@property --sc-wash-w {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+.sc-wash {
+  /* Declared as well as registered: in a browser without @property support the
+     registration is ignored, and an unresolvable --sc-wash-p would invalidate
+     the whole colour declaration until the first frame of script runs. */
+  --sc-wash-p: 0;
+  --sc-wash-n: 1;
+  --sc-wash-spread: 4;
+  /* The uncoloured state. Overridden per surface; this is only a fallback. */
+  --sc-wash-from: var(--sc-dim, #8d97a8);
+}
+
+.sc-wash-word {
+  /*
+   * The sweep. `--sc-wash-p` runs 0 to 1 for the whole block, and the head of
+   * the sweep moves past `n + spread` word positions over that range. A word
+   * at index i starts changing when the head reaches i and is finished
+   * `spread` positions later, which is what staggers the colour left to right.
+   */
+  --sc-wash-w: clamp(
+    0,
+    calc(
+      (var(--sc-wash-p) * (var(--sc-wash-n) + var(--sc-wash-spread)) - var(--sc-wash-i)) /
+        var(--sc-wash-spread)
+    ),
+    1
+  );
+  color: color-mix(
+    in oklab,
+    var(--sc-wash-to) calc(var(--sc-wash-w) * 100%),
+    var(--sc-wash-from)
+  );
+  /* Smooths the step between frames on a trackpad flick without lagging the
+     sweep behind the scroll. */
+  transition: color 120ms linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-wash-word {
+    transition: none;
+  }
+}

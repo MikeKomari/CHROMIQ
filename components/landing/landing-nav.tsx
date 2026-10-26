@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowUpRight, Contrast } from "lucide-react";
 import { useContrast } from "@/hooks/use-contrast";
+import { ChromiqMark, ChromiqWordmark } from "@/components/brand/chromiq-logo";
 
 export function LandingNav() {
   const [contrast, setContrast] = useContrast();
@@ -11,7 +12,8 @@ export function LandingNav() {
     <header className="ld-nav">
       <div className="ld-wrap ld-nav-inner">
         <Link href="/" className="ld-wordmark" aria-label="CHROMIQ home">
-          CHROMIQ
+          <ChromiqMark height={26} />
+          <ChromiqWordmark height={30} label="" />
         </Link>
         <nav aria-label="Sections" className="ld-nav-links">
           <a href="#restyle">Restyle</a>
