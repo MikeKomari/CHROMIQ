@@ -651,7 +651,7 @@ button.panel-row:hover,
   .topbar .divider {
     display: none;
   }
-  .topbar .brand-lockup strong {
+  .topbar .brand-lockup .brand-wordmark {
     display: none;
   }
   .topbar {
@@ -681,4 +681,159 @@ button.panel-row:hover,
 }
 .insp-fieldset:disabled {
   opacity: 0.55;
+}
+
+/* Account modal: optional sign-in for cloud sync. Reuses the project-modal shell and form look. */
+.account-modal {
+  width: min(440px, 100%);
+}
+.account-modal .modal-copy {
+  margin: 14px 0 18px;
+}
+.account-form {
+  display: flex;
+  flex-direction: column;
+}
+.account-form label {
+  margin-top: 14px;
+  color: var(--muted);
+  text-transform: uppercase;
+  font: 600 var(--fs-2xs) var(--ui-font);
+  letter-spacing: 0.06em;
+}
+.account-form label:first-child {
+  margin-top: 0;
+}
+.account-form input {
+  display: block;
+  width: 100%;
+  margin-top: 7px;
+  padding: 10px;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  font: var(--fs-md) var(--ui-font);
+}
+.account-form input[aria-invalid="true"] {
+  border-color: var(--coral);
+}
+.account-hint {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: var(--fs-xs);
+}
+.account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+}
+.account-switch {
+  padding: 4px 0;
+  color: var(--accent-fg);
+  background: transparent;
+  border: 0;
+  font-size: var(--fs-sm);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.account-switch:hover {
+  color: var(--text);
+}
+/* Busy buttons stay focusable (aria-disabled) so focus is not dropped mid-request. */
+.account-modal [aria-disabled="true"] {
+  opacity: 0.6;
+  cursor: progress;
+}
+.account-identity {
+  margin: 0;
+  padding: 12px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+}
+.account-identity dt {
+  color: var(--muted);
+  text-transform: uppercase;
+  font: 600 var(--fs-2xs) var(--ui-font);
+  letter-spacing: 0.06em;
+}
+.account-identity dd {
+  margin: 6px 0 0;
+  color: var(--text);
+  font-size: var(--fs-md);
+  overflow-wrap: anywhere;
+}
+/* Signed in is shown by the check-mark icon; the accent tint only reinforces it. */
+.topbar .account-button.is-signed-in {
+  color: var(--accent-fg);
+}
+
+/* Account deletion. Set apart from the rest of the dialog by a rule and the
+   coral border, because it is the one irreversible action in here. */
+.account-danger {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.account-danger h3 {
+  margin: 0;
+  color: var(--text);
+  font: 600 var(--fs-md) var(--ui-font);
+}
+.account-danger p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: var(--fs-xs);
+  line-height: 1.55;
+}
+.account-danger label {
+  display: block;
+  margin-top: 14px;
+  color: var(--muted);
+  text-transform: uppercase;
+  font: 600 var(--fs-2xs) var(--ui-font);
+  letter-spacing: 0.06em;
+}
+.account-danger label strong {
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text);
+}
+.account-danger input {
+  display: block;
+  width: 100%;
+  margin-top: 7px;
+  padding: 10px;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  font: var(--fs-md) var(--ui-font);
+}
+.danger-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 14px;
+  padding: 8px 14px;
+  color: var(--danger-ink);
+  background: var(--danger-bg);
+  border: 1px solid color-mix(in srgb, var(--coral) 40%, transparent);
+  border-radius: var(--radius-control);
+  font: 600 var(--fs-sm) var(--ui-font);
+  cursor: pointer;
+}
+.danger-button:hover:not([disabled]) {
+  border-color: var(--coral);
+}
+.danger-button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.account-danger .account-actions .danger-button {
+  margin-top: 0;
 }

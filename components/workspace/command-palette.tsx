@@ -1,4 +1,16 @@
-import { Command, Contrast, Download, Palette, Search, Sun, SunMoon, X, ZoomIn, ZoomOut } from "lucide-react";
+import {
+  Command,
+  Contrast,
+  Download,
+  Globe2,
+  Palette,
+  Search,
+  Sun,
+  SunMoon,
+  X,
+  ZoomIn,
+  ZoomOut,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useContrast } from "@/hooks/use-contrast";
 import { UI_SCALES, useUiScale } from "@/hooks/use-ui-scale";
@@ -11,6 +23,7 @@ export function CommandPalette({
   openImport,
   openInspect,
   openExport,
+  openRestyle,
   close,
 }: {
   randomize: () => void;
@@ -20,6 +33,7 @@ export function CommandPalette({
   openImport: () => void;
   openInspect: () => void;
   openExport: () => void;
+  openRestyle: () => void;
   close: () => void;
 }) {
   const [query, setQuery] = useState("");
@@ -55,6 +69,11 @@ export function CommandPalette({
       label: "Inspect a public URL",
       icon: <Search size={15} />,
       run: openInspect,
+    },
+    {
+      label: "Restyle a website from a URL",
+      icon: <Globe2 size={15} />,
+      run: openRestyle,
     },
     { label: "Export system", icon: <Download size={15} />, run: openExport },
     {

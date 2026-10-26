@@ -11,6 +11,7 @@ import { deriveDarkTheme, resolveMode } from "@/lib/theme";
 import { loadFontFamily } from "@/lib/fonts";
 import { normalizeTokens } from "@/lib/tokens";
 import { validateTokens } from "@/lib/validate";
+import { createShare, resolveShare } from "@/lib/sync";
 import type {
   HarmonyMode,
   ImportResult,
@@ -144,6 +145,35 @@ export function useWorkspace() {
     }
     if (sharedMode) setModeManual(true);
     else setMode(resolveMode(defaultMode));
+  }, []);
+
+  // Short share links (`?s=<slug>`) resolve over the network, so they are read
+  // after the synchronous boot above rather than inside it.
+  useEffect(() => {
+    const slug = new URLSearchParams(window.location.search).get("s");
+    if (!slug) return;
+    let cancelled = false;
+
+    resolveShare(slug).then((result) => {
+      if (cancelled || !result.ok) return;
+      const shared = result.data.data as {
+        tokens?: Partial<Tokens>;
+        mode?: Mode;
+        starter?: string;
+      };
+      if (!shared || typeof shared !== "object" || !shared.tokens) return;
+      setTokens(normalizeTokens(shared.tokens));
+      if (shared.mode) {
+        setMode(shared.mode);
+        setModeManual(true);
+      }
+      if (shared.starter) setActiveStarter(shared.starter);
+      setReadOnly(true);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -474,12 +504,20 @@ export function useWorkspace() {
     setVersions((current) => current.filter((version) => version.id !== id));
 
   const createShareLink = async () => {
-    const payload = JSON.stringify({ tokens, mode, starter: activeStarter });
-    const encoded = btoa(payload)
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_")
-      .replace(/=+$/, "");
-    const url = `${window.location.origin}${window.location.pathname}?share=${encoded}`;
+    const payload = { tokens, mode, starter: activeStarter };
+    const base = `${window.location.origin}${window.location.pathname}`;
+
+    // Prefer a short slug. Encoding the whole system into the query string
+    // produces links that outgrow browser and CDN URL limits on large systems,
+    // so that path is only the fallback when short links are unavailable.
+    const short = await createShare(payload);
+    const url = short.ok
+      ? `${base}?s=${short.data.share.slug}`
+      : `${base}?share=${btoa(JSON.stringify(payload))
+          .replace(/\+/g, "-")
+          .replace(/\//g, "_")
+          .replace(/=+$/, "")}`;
+
     try {
       await navigator.clipboard.writeText(url);
       return true;

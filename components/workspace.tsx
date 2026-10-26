@@ -6,6 +6,7 @@ import { MotionConfig } from "motion/react";
 import { starters } from "@/data/workspace";
 import { starterAccents } from "@/lib/colors";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { useAccount } from "@/hooks/use-account";
 import { CanvasArea } from "@/components/workspace/canvas-area";
 import { ExportModal } from "@/components/workspace/export-modal";
 import { TopBar } from "@/components/workspace/shell/top-bar";
@@ -30,10 +31,12 @@ import {
   type RestyleRequest,
 } from "@/components/workspace/restyle/restyle-view";
 import { SettingsModal } from "@/components/workspace/settings-modal";
+import { AccountModal } from "@/components/workspace/account-modal";
 
 export function Workspace() {
   const workspace = useWorkspace();
   const layout = useShellLayout();
+  const account = useAccount();
   const [showProjects, setShowProjects] = useState(false);
   const [showSnapshots, setShowSnapshots] = useState(false);
   const [showImport, setShowImport] = useState(false);
@@ -42,6 +45,7 @@ export function Workspace() {
   const [showSettings, setShowSettings] = useState(false);
   const [showVersions, setShowVersions] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [showAccount, setShowAccount] = useState(false);
   const [shared, setShared] = useState(false);
   const [restyleRequest, setRestyleRequest] = useState<RestyleRequest | null>(null);
   const consumeRestyleRequest = useCallback(() => setRestyleRequest(null), []);
@@ -121,6 +125,7 @@ export function Workspace() {
         else if (showImport) setShowImport(false);
         else if (showInspect) setShowInspect(false);
         else if (showSettings) setShowSettings(false);
+        else if (showAccount) setShowAccount(false);
         else if (showHelp) setShowHelp(false);
         else if (event.defaultPrevented) return;
         else if (layout.narrowPanel && layout.panelOverlay) layout.dismissPanelOverlay();
@@ -129,7 +134,7 @@ export function Workspace() {
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [showCommand, showExport, showProjects, showSnapshots, showVersions, showImport, showInspect, showSettings, showHelp, layout.narrowPanel, layout.panelOverlay, layout.dismissPanelOverlay, layout.narrowInspector, layout.inspectorDrawer, layout.closeInspectorDrawer]);
+  }, [showCommand, showExport, showProjects, showSnapshots, showVersions, showImport, showInspect, showSettings, showAccount, showHelp, layout.narrowPanel, layout.panelOverlay, layout.dismissPanelOverlay, layout.narrowInspector, layout.inspectorDrawer, layout.closeInspectorDrawer]);
   const selectStarter = (starter: (typeof starters)[number]) => {
     if (readOnly) return;
     updateTokens(starterAccents(starter));
@@ -181,6 +186,9 @@ export function Workspace() {
           openSearch={() => setShowCommand(true)}
           openHelp={() => setShowHelp(true)}
           openSettings={() => setShowSettings(true)}
+          openAccount={() => setShowAccount(true)}
+          accountStatus={account.status}
+          accountEmail={account.user?.email}
         />
         {readOnly && (
           <div className="readonly-banner">
@@ -380,6 +388,9 @@ export function Workspace() {
           close={() => setShowSettings(false)}
         />
       )}
+      {showAccount && account.status !== "unavailable" && (
+        <AccountModal account={account} close={() => setShowAccount(false)} />
+      )}
       {showCommand && (
         <CommandPalette
           randomize={workspace.randomize}
@@ -399,6 +410,7 @@ export function Workspace() {
           openImport={() => setShowImport(true)}
           openInspect={() => setShowInspect(true)}
           openExport={() => workspace.setShowExport(true)}
+          openRestyle={() => setView("restyle")}
           close={() => setShowCommand(false)}
         />
       )}

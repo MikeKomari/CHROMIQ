@@ -101,8 +101,13 @@ export function RestyleView({
     [clear],
   );
 
+  // Keyed by request id rather than guarded by `request` alone: React runs
+  // mount effects twice in development, which otherwise fetched the target
+  // site twice per import and spent the proxy's rate limit at double speed.
+  const handledRequest = useRef<number | null>(null);
   useEffect(() => {
-    if (!request) return;
+    if (!request || handledRequest.current === request.id) return;
+    handledRequest.current = request.id;
     consumeRequest();
     void load(request.url);
   }, [request, consumeRequest, load]);

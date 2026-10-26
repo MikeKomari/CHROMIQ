@@ -1,7 +1,9 @@
 "use client";
 
-import { Check, ChevronDown, CircleHelp, Link2, Search, Settings2 } from "lucide-react";
+import { Check, ChevronDown, CircleHelp, Link2, Search, Settings2, UserRound, UserRoundCheck } from "lucide-react";
 import { motion } from "motion/react";
+import { ChromiqMark, ChromiqWordmark } from "@/components/brand/chromiq-logo";
+import type { AccountStatus } from "@/hooks/use-account";
 
 export function TopBar({
   projectName,
@@ -13,6 +15,9 @@ export function TopBar({
   openSearch,
   openHelp,
   openSettings,
+  openAccount,
+  accountStatus,
+  accountEmail,
 }: {
   projectName: string;
   saved: boolean;
@@ -23,7 +28,14 @@ export function TopBar({
   openSearch: () => void;
   openHelp: () => void;
   openSettings: () => void;
+  openAccount: () => void;
+  accountStatus: AccountStatus;
+  accountEmail?: string;
 }) {
+  // Accounts are optional. Hide the control until the server confirms they exist,
+  // so a deployment without a database never shows a button that cannot work.
+  const showAccount = accountStatus === "anonymous" || accountStatus === "signed-in";
+  const signedIn = accountStatus === "signed-in";
   return (
     <motion.header
       className="topbar"
@@ -32,10 +44,8 @@ export function TopBar({
       transition={{ duration: 0.3, ease: "easeOut" }}
     >
       <div className="brand-lockup">
-        <div className="brand-mark" aria-hidden="true">
-          <span />
-        </div>
-        <strong>CHROMIQ</strong>
+        <ChromiqMark height={22} />
+        <ChromiqWordmark height={26} className="brand-wordmark" />
       </div>
       <button
         type="button"
@@ -63,6 +73,18 @@ export function TopBar({
         >
           <Settings2 size={17} />
         </button>
+        {showAccount && (
+          <button
+            type="button"
+            className={`icon-button account-button${signedIn ? " is-signed-in" : ""}`}
+            aria-label={signedIn ? `Account, signed in${accountEmail ? ` as ${accountEmail}` : ""}` : "Account, signed out"}
+            aria-haspopup="dialog"
+            title={signedIn ? "Account (signed in)" : "Account (optional, for sync)"}
+            onClick={openAccount}
+          >
+            {signedIn ? <UserRoundCheck size={17} /> : <UserRound size={17} />}
+          </button>
+        )}
         <button className="icon-button" aria-label="Share read-only link" title="Copy read-only link" onClick={share}>
           {shared ? <Check size={17} /> : <Link2 size={17} />}
         </button>

@@ -23,10 +23,17 @@
   --radius-control: 4px;
   --radius-popover: 6px;
   --radius-modal: 8px;
+  /* Logo: Nanashi Indigo and Star Gold in every theme (brand/GUIDELINES.md); the violet
+     keyline keeps the indigo window visible on dark chrome. */
+  --logo-mark: #4b0082;
+  --logo-star: #ffc857;
+  --logo-dot: #ffc857;
+  --logo-keyline: #a283e6;
   color-scheme: dark;
 }
 :root,
 .chromiq-app {
+  --logo-text: var(--text);
   --line-strong: color-mix(in srgb, var(--text) 16%, var(--line));
   --dim: color-mix(in srgb, var(--muted) 60%, var(--bg));
   --accent-soft: color-mix(in srgb, var(--accent) 14%, var(--panel));
@@ -173,10 +180,9 @@ button:disabled {
   gap: 11px;
   letter-spacing: -0.04em;
 }
-.brand-lockup strong {
+.brand-lockup svg {
   display: block;
-  font-family: var(--ui-display);
-  font-size: var(--fs-lg);
+  flex: none;
 }
 .brand-lockup small {
   color: var(--muted);
@@ -184,20 +190,6 @@ button:disabled {
   display: block;
   margin-top: 1px;
   font: var(--fs-xs)/1.3 var(--ui-font);
-}
-.brand-mark {
-  width: 23px;
-  height: 23px;
-  border: 1px solid var(--accent);
-  transform: rotate(45deg);
-  display: grid;
-  place-items: center;
-}
-.brand-mark span {
-  display: block;
-  width: 9px;
-  height: 9px;
-  background: var(--accent);
 }
 .project-name {
   justify-self: center;
@@ -1345,6 +1337,8 @@ input[type="range"] {
   --cyan: #2f5fb8;
   --coral: #b44a3a;
   --shadow: rgba(20, 20, 40, 0.12);
+  /* Indigo already reads on light chrome, so the keyline drops out. */
+  --logo-keyline: transparent;
   color-scheme: light;
 }
 :root[data-contrast="high"] .chromiq-app.is-light {
