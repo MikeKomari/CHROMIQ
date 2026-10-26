@@ -660,35 +660,52 @@ Product backlog for the CHROMIQ visual design workbench. Tickets use a Jira-like
 ### CHROMIQ-1004 — Legal pages
 
 - **Priority:** P0
-- **Status:** BLOCKED — deferred by decision on 2026-10-23, revisit before launch
+- **Status:** OPEN — contact address resolved on 2026-10-26; lawyer review and governing law still outstanding
 - **Reason:** CHROMIQ fetches and re-renders third-party websites through `/api/proxy` and `/api/inspect`, and will store user email addresses and projects once accounts ship. Both of those need published terms and a privacy policy before the app is public.
 
-#### What is actually wrong right now, in plain terms
+#### What is resolved
 
-`/privacy` and `/terms` are written and routed, and their descriptions of the app are accurate. But the contact address printed on both pages is a placeholder, `legal@[domain to be added]`. **It is not a real mailbox.** A user who reads the privacy policy and tries to ask for their data to be deleted has nowhere to write, and a copyright holder who wants content taken down has nowhere to send the notice.
+The contact address is real. On 2026-10-26 the maintainer chose their personal
+address, `michealkgt@gmail.com`, since there is no company and no project
+domain. It is defined once as `LEGAL_CONTACT` in
+`components/legal/legal-page.tsx` and rendered by both pages, so moving to a
+role mailbox later is a one-line change.
 
-#### The decision that needs making
+This is legally adequate: the GDPR and the CCPA ask for a contact that reaches
+whoever actually decides what happens to the data, not for a corporate
+mailbox. Deletion requests now have a private channel, and `/privacy` also
+points at the self-service `DELETE /api/auth/me` route, which does not require
+writing to anyone.
 
-Pick where those messages should arrive:
+The privacy policy's claims were re-verified against the shipped account code,
+and the share-links section was corrected: creating a short link does store the
+token system server-side, which the policy had previously denied.
 
-1. **A real email address** on a domain you control. Cleanest, and the only option that keeps a user's deletion request private. Needs a mailbox to exist first.
-2. **The public GitHub issue tracker** at `https://github.com/MikeKomari/CHROMIQ/issues`. It exists and works today. Fine for copyright and abuse reports, where a public record is normal. Poor for privacy requests, because it asks a user to post their own email address in public to get their data deleted.
-3. **A split**: GitHub issues for abuse and DMCA, a private email for privacy. Most correct, needs one mailbox.
+#### What is still outstanding
 
-Separately, a lawyer should read both documents, and decide governing law and jurisdiction, which are deliberately left unwritten.
+- **No lawyer has read either document.** The maintainer has no legal contact,
+  so this stays open rather than being quietly marked done.
+- **Governing law and jurisdiction are deliberately unwritten** in
+  `app/terms/page.tsx`. That is the operator's decision and depends on their
+  country of residence.
+- **No DMCA agent is claimed**, on purpose. Registering a designated agent with
+  the Copyright Office costs money and is only worth it if CHROMIQ hosts
+  user-submitted content at scale; the terms describe an informal takedown
+  route instead and do not pretend otherwise.
 
-#### Where the placeholders live
+#### Known cost of using a personal address
 
-- `components/legal/legal-page.tsx` — the `LEGAL_CONTACT` constant, which both pages render
-- `app/terms/page.tsx` — contact and DMCA section, and the governing-law gap
-- `app/privacy/page.tsx` — account claims to re-verify against the shipped account code
+The address is published on two public pages, so it will be scraped and will
+attract spam. A dedicated free mailbox, or a plus-address, would contain that
+without needing a domain.
 
 - **Acceptance criteria:**
   - `/privacy` and `/terms` describe only what the code actually does.
   - Acceptable use covers the proxy and inspector.
-  - A working abuse and DMCA contact is published, and reaches a real inbox.
-  - Privacy requests have a channel that does not require posting personal data in public.
-  - A lawyer has reviewed both documents.
+  - A working abuse and DMCA contact is published, and reaches a real inbox. **Done.**
+  - Privacy requests have a channel that does not require posting personal data in public. **Done.**
+  - A lawyer has reviewed both documents. *Outstanding.*
+  - Governing law and jurisdiction are stated. *Outstanding.*
 
 ### CHROMIQ-1005 — Observability
 

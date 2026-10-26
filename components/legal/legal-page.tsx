@@ -4,8 +4,17 @@ import "@/app/legal.css";
 
 export const LAST_UPDATED = "2026-10-23";
 
-// TODO(launch): replace with the real address once the domain mailbox exists. Not a working address yet.
-export const LEGAL_CONTACT = "legal@[domain to be added]";
+/**
+ * Where privacy and terms enquiries go.
+ *
+ * CHROMIQ is run by one person with no company behind it, so this is a
+ * personal address rather than a role mailbox. That is fine legally — what the
+ * GDPR and the CCPA ask for is a contact that actually reaches whoever decides
+ * what happens to the data, which this does. Swap it for a role address on the
+ * project's own domain if CHROMIQ ever gets one; both legal pages read it from
+ * here, so this line is the only place that needs changing.
+ */
+export const LEGAL_CONTACT = "michealkgt@gmail.com";
 
 export function LegalPage({
   title,
