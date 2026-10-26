@@ -12,6 +12,18 @@ import { loadFontFamily } from "@/lib/fonts";
 import { normalizeTokens } from "@/lib/tokens";
 import { validateTokens } from "@/lib/validate";
 import { createShare, resolveShare } from "@/lib/sync";
+
+/**
+ * A share payload is carried in a URL, so its `mode` is whatever the sender
+ * typed. `themeColors` looks the mode up in a table keyed by "dark" and
+ * "light"; anything else yields undefined, and the first read of
+ * `colors.background` throws while the preview renders, which drops the whole
+ * workspace into the recovery screen. The decoder's try/catch does not help,
+ * because the value only fails later, during render.
+ */
+function sharedMode(value: unknown): Mode | null {
+  return value === "dark" || value === "light" ? value : null;
+}
 import type {
   HarmonyMode,
   ImportResult,
@@ -111,7 +123,7 @@ export function useWorkspace() {
       } catch {
         /* keep default preferences */
       }
-    let sharedMode = false;
+    let sharedModeApplied = false;
     const storedLocks = window.localStorage.getItem("chromiq-locks");
     if (storedLocks)
       try {
@@ -133,9 +145,10 @@ export function useWorkspace() {
           atob(share.replace(/-/g, "+").replace(/_/g, "/")),
         ) as { tokens: Partial<Tokens>; mode?: Mode; starter?: string };
         setTokens(normalizeTokens(decoded.tokens));
-        if (decoded.mode) {
-          setMode(decoded.mode);
-          sharedMode = true;
+        const mode = sharedMode(decoded.mode);
+        if (mode) {
+          setMode(mode);
+          sharedModeApplied = true;
         }
         if (decoded.starter) setActiveStarter(decoded.starter);
         setReadOnly(true);
@@ -143,7 +156,7 @@ export function useWorkspace() {
     } catch {
       /* ignore a malformed share link */
     }
-    if (sharedMode) setModeManual(true);
+    if (sharedModeApplied) setModeManual(true);
     else setMode(resolveMode(defaultMode));
   }, []);
 
@@ -163,8 +176,9 @@ export function useWorkspace() {
       };
       if (!shared || typeof shared !== "object" || !shared.tokens) return;
       setTokens(normalizeTokens(shared.tokens));
-      if (shared.mode) {
-        setMode(shared.mode);
+      const mode = sharedMode(shared.mode);
+      if (mode) {
+        setMode(mode);
         setModeManual(true);
       }
       if (shared.starter) setActiveStarter(shared.starter);
