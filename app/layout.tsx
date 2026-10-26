@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./surfaces.css";
 import "./landing.css";
+import "./scroll.css";
+import "./landing-scroll.css";
 import "./restyle.css";
 import "./export-tools.css";
 import "./inspector-tools.css";
@@ -9,11 +11,29 @@ import "./canvas-tools.css";
 import "./ui-controls.css";
 import "./shell.css";
 import { contrastBootScript, uiScaleBootScript } from "@/lib/contrast-boot";
+import { siteName, siteUrl, socialImage } from "@/lib/site";
 
 export const metadata: Metadata = {
+  metadataBase: siteUrl,
   title: "CHROMIQ: visual systems, made tangible",
   description:
     "A browser-first design workbench for exploring, comparing, and exporting frontend visual systems.",
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    siteName,
+    images: [socialImage],
+    title: "CHROMIQ: visual systems, made tangible",
+    description:
+      "A browser-first design workbench for exploring, comparing, and exporting frontend visual systems.",
+  },
+  twitter: {
+    card: "summary",
+    images: [socialImage.url],
+    title: "CHROMIQ: visual systems, made tangible",
+    description:
+      "A browser-first design workbench for exploring, comparing, and exporting frontend visual systems.",
+  },
 };
 
 export default function RootLayout({

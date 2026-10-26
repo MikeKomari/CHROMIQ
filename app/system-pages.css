@@ -1,0 +1,25 @@
+/* Not-found and loading screens. Builds on .error-screen / .error-card in globals.css. */
+.error-card[data-tone="neutral"] > svg {
+  color: var(--accent-fg);
+}
+.error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.error-actions a {
+  text-decoration: none;
+}
+.error-actions a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.loading-card > svg {
+  color: var(--accent-fg);
+}
+.loading-card h1 {
+  font-size: var(--fs-xl);
+}
+.loading-card p {
+  margin-bottom: 0;
+}
