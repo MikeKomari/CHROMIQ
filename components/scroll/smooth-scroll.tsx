@@ -23,10 +23,14 @@ export function SmoothScroll() {
     const start = () => {
       if (lenis) return;
       lenis = new Lenis({
-        // Long enough to read as momentum, short enough that a flick still
-        // lands where the viewer aimed.
-        duration: 1.05,
-        easing: (t) => 1 - Math.pow(1 - t, 3),
+        // Framerate-independent smoothing rather than a fixed duration. A
+        // duration makes every gesture take the same time to settle, so a
+        // small nudge glides on far longer than the input suggested and the
+        // page feels like it is deciding where to stop on its own. A lerp
+        // tracks the wheel closely and settles in proportion to how far it
+        // still has to go. 0.12 is smooth without the page sliding after the
+        // viewer has stopped asking it to.
+        lerp: 0.12,
         // Touch devices have their own momentum; doubling it feels broken.
         syncTouch: false,
         touchMultiplier: 1,

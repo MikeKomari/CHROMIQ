@@ -4,8 +4,9 @@ import { useEffect, useMemo, useRef } from "react";
 
 /**
  * Text whose words take on colour one after another, left to right, as the
- * block is scrolled through. By the time the block has finished crossing the
- * viewport every word is fully coloured.
+ * block rises through the viewport. The sweep is finished by the time the
+ * block is centred, so the reader sees the completed sentence sitting still
+ * rather than catching the last word on its way off the screen.
  *
  * How the sweep works: the component writes a single `--sc-wash-p` (0 to 1) on
  * the container once per frame. Each word carries its own index and target
@@ -58,32 +59,81 @@ export function ColorWashText({
     }
 
     let frame = 0;
+    // Geometry is measured outside the scroll handler so a frame costs one
+    // style write and no layout. Reading getBoundingClientRect() per frame
+    // forces a synchronous layout on every scroll event, which is the kind of
+    // thing that makes a smooth-scrolled page feel gritty.
+    let docTop = 0;
+    let height = 0;
+    let viewport = 0;
+
+    const measure = () => {
+      const box = node.getBoundingClientRect();
+      docTop = box.top + window.scrollY;
+      height = box.height;
+      viewport = window.innerHeight;
+    };
+
+    /**
+     * Where the sweep begins and ends, as the block's own position.
+     *
+     * It starts as the block comes in, with its top a tenth of the way above
+     * the bottom edge, and finishes when the block is vertically centred. That
+     * end point is the fix for the sweep appearing not to stop anywhere in
+     * particular: it used to finish when the block's bottom passed the top of
+     * the viewport, so the final word took its colour after the sentence had
+     * already left the screen, and the reader never saw the finished line. The
+     * sweep now completes with the whole sentence sitting in the middle of the
+     * viewport, and the rest of the scroll is spent reading it.
+     *
+     * Centring is also what `Parallax` treats as the neutral position, so the
+     * two effects agree about when an element has "arrived".
+     */
+    const progressAt = (scrollY: number) => {
+      const top = docTop - scrollY;
+      const from = viewport * 0.9;
+      const to = (viewport - height) / 2;
+      const span = from - to;
+      if (span <= 0) return 1;
+      return (from - top) / span;
+    };
+
+    // Smoothstep. The sweep eases in and settles out instead of starting and
+    // stopping abruptly at the ends of the range, which is most of what makes
+    // it feel attached to the scroll rather than driven by it.
+    const ease = (t: number) => t * t * (3 - 2 * t);
+
     const read = () => {
       frame = 0;
-      const box = node.getBoundingClientRect();
-      const viewport = window.innerHeight;
-      // 0 when the block's top reaches the bottom of the viewport, 1 once its
-      // bottom has risen to a fifth of the way up. Finishing before the block
-      // leaves means the last word is coloured while it is still being read.
-      const span = viewport * 0.8 + box.height;
-      const travelled = viewport - box.top - viewport * 0.2;
-      const progress = span > 0 ? travelled / span : 1;
-      node.style.setProperty(
-        "--sc-wash-p",
-        String(Math.min(1, Math.max(0, progress))),
-      );
+      const raw = Math.min(1, Math.max(0, progressAt(window.scrollY)));
+      node.style.setProperty("--sc-wash-p", String(ease(raw)));
     };
+
     const onScroll = () => {
       if (!frame) frame = window.requestAnimationFrame(read);
     };
 
+    const onResize = () => {
+      measure();
+      onScroll();
+    };
+
+    measure();
     read();
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    window.addEventListener("resize", onResize);
+
+    // The block's height changes when a webfont swaps in or the text rewraps,
+    // and a stale height silently shifts where the sweep ends.
+    const observer =
+      typeof ResizeObserver === "function" ? new ResizeObserver(onResize) : null;
+    observer?.observe(node);
+
     return () => {
       if (frame) window.cancelAnimationFrame(frame);
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("resize", onResize);
+      observer?.disconnect();
     };
   }, [text]);
 

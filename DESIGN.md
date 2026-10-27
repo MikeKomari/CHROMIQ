@@ -74,7 +74,11 @@ The reason for the split is that the two surfaces have different jobs. The workb
 The one exception to the single-accent rule lives here too. The statement that
 explains what CHROMIQ is takes on colour word by word, left to right, as it is
 scrolled through, each word resolving from the body grey to its own hue drawn
-from a six-step spectrum. By the end of the block every word is fully coloured.
+from a six-step spectrum. The sweep finishes when the block reaches the middle
+of the viewport, not when it leaves: the point is to read the finished
+sentence sitting still, so completing it on the way off the top wastes the
+effect. Progress is eased rather than linear, so it settles into place instead
+of stopping dead.
 The argument for it is that CHROMIQ is a colour tool, and the sentence that
 claims so demonstrates it. Every hue in the spectrum clears 4.5:1 on
 `--bg-deep`, so the words are readable at every point in the sweep and not only
@@ -87,7 +91,7 @@ Rules that still apply on the landing page:
 - Text contrast minimums from Color are unchanged.
 - Visible focus rings use `--accent`, as everywhere else.
 - Reveal-on-scroll is decoration only. Under `prefers-reduced-motion`, every chapter renders immediately at full opacity, the demo reel falls back to its poster frame, the parallax layers and the drifting light hold still, and the statement renders fully coloured rather than sweeping to it.
-- Scroll momentum is smoothed with Lenis, which drives the real window scroll rather than transforming a container, so fixed chrome, anchor links and IntersectionObserver keep working. It is destroyed outright under `prefers-reduced-motion`, which returns native scrolling without a reload.
+- Scroll momentum is smoothed with Lenis, which drives the real window scroll rather than transforming a container, so fixed chrome, anchor links and IntersectionObserver keep working. It is destroyed outright under `prefers-reduced-motion`, which returns native scrolling without a reload. The smoothing is a lerp, not a fixed duration: a gesture settles in proportion to how far it still has to travel, so a small nudge lands quickly instead of gliding for as long as a full flick.
 - Parallax runs on three depths: the atmospheric light drifts furthest (a native `animation-timeline: scroll()` animation, so it costs no JavaScript and degrades to a static light where unsupported), the demo reel lifts as it crosses, and the hero wordmark trails the scroll. Nothing is moved far enough to leave the reader chasing it.
 - Content never depends on the animation running. If JavaScript or IntersectionObserver is unavailable, the page still reads top to bottom.
 
