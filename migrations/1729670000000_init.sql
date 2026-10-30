@@ -1,8 +1,11 @@
 -- Up Migration
 
--- gen_random_uuid() is built in from PostgreSQL 13, but pgcrypto makes the
--- intent explicit and keeps this migration portable to older servers.
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+-- gen_random_uuid() is built in from PostgreSQL 13, so no extension is
+-- needed for the uuid defaults below. This used to run CREATE EXTENSION
+-- pgcrypto to make the intent explicit, but installing an extension needs
+-- CREATE on the database, which the migration role deliberately does not
+-- have, and nothing here calls a pgcrypto function -- password hashing is
+-- scrypt in the application, not crypt() in the database.
 
 -- A person who opted in to syncing across devices. Logged-out users never
 -- reach this table: their work stays in localStorage.
