@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "migrate": "node-pg-migrate -j sql -m migrations --envPath .env.local -d DIRECT_URL -s prism --create-schema",
+    "migrate": "node-pg-migrate -j sql --schema=prism -m migrations --envPath .env.local -d DIRECT_URL",
     "migrate:up": "npm run migrate -- up",
     "migrate:down": "npm run migrate -- down 1",
     "migrate:create": "npm run migrate -- create"
