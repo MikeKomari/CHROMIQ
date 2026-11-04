@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  capture,
   CAPTURE_VIEWPORTS,
   CAPTURE_VIEWPORT_IDS,
   captureFlagOn,
@@ -258,5 +259,29 @@ describe("createRouteGuard", () => {
     });
     await createRouteGuard(openGate())(route);
     expect(recorded.aborted).toBe("failed");
+  });
+});
+
+describe("capture(): credentials in the address", () => {
+  const ORIGINAL = process.env.CHROMIQ_CAPTURE;
+  afterEach(() => {
+    if (ORIGINAL === undefined) delete process.env.CHROMIQ_CAPTURE;
+    else process.env.CHROMIQ_CAPTURE = ORIGINAL;
+  });
+
+  it("never reports back a password that was in the url", async () => {
+    // The capture promises a clean browser with no sign-in. Sending Basic
+    // auth would make that note false, and the secret would travel back in
+    // requestedUrl and url, which the client renders.
+    process.env.CHROMIQ_CAPTURE = "on";
+    const outcome = await capture(
+      new URL("http://user:hunter2@example.com/page"),
+      "desktop",
+      // Refuse it before a browser is involved: this test is about what the
+      // result says, not about rendering.
+      async () => true,
+    );
+    expect(outcome.ok).toBe(false);
+    expect(JSON.stringify(outcome)).not.toContain("hunter2");
   });
 });

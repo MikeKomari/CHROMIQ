@@ -311,6 +311,22 @@ export async function capture(
     };
   }
 
+  /*
+   * Strip any credentials from the address.
+   *
+   * `http://user:secret@host/` would have the browser send Basic auth, which
+   * contradicts the promise this capture makes in its own notes -- that it
+   * runs in a clean browser with no sign-in, so a page behind a login shows
+   * its signed-out state. It would also put the secret in `requestedUrl` and
+   * `url`, which are returned to the client and could end up pasted into a
+   * feedback report.
+   */
+  if (target.username || target.password) {
+    target = new URL(target.toString());
+    target.username = "";
+    target.password = "";
+  }
+
   const playwright = await loadPlaywright();
   if (!playwright) {
     return {
