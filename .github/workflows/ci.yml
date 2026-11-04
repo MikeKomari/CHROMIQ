@@ -4,10 +4,15 @@ on:
   pull_request:
   push:
     branches: [main]
+  # Callable, so the tag deploy runs exactly this verification rather than its
+  # own copy that can drift out of step with it.
+  workflow_call:
 
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # A workflow_call run shares the caller's ref, so it must not cancel the
+  # caller's own group. Keyed by workflow as well as ref for that reason.
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   verify:
