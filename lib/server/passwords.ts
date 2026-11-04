@@ -26,6 +26,25 @@ const SALT_LENGTH = 16;
 const MAX_MEMORY = 128 * 1024 * 1024;
 
 /**
+ * Bounds on the key length read out of a stored hash.
+ *
+ * scrypt finishes with a single PBKDF2-HMAC-SHA256 pass, which makes its output
+ * prefix-stable: deriving 15 bytes gives exactly the first 15 bytes of a 64
+ * byte derivation. verifyPassword asks scrypt for `expected.length` bytes, so
+ * a stored hash whose key had been truncated would still verify -- and a hash
+ * truncated to one byte would accept roughly one password in 256.
+ *
+ * The floor makes that useless: 32 bytes is far beyond brute force, so a
+ * shortened key is refused rather than honoured. The ceiling keeps a tampered
+ * row from asking for a derivation large enough to be its own denial of
+ * service. Every hash this code has ever written is KEY_LENGTH bytes; the
+ * range exists so that raising KEY_LENGTH later does not lock out the hashes
+ * already stored, which needsRehash will replace on next login.
+ */
+const MIN_STORED_KEY_BYTES = 32;
+const MAX_STORED_KEY_BYTES = 128;
+
+/**
  * Hashes a password into a self-describing string:
  * `scrypt$N$r$p$<salt base64>$<key base64>`
  */
@@ -73,7 +92,13 @@ export async function verifyPassword(password: string, stored: string) {
   } catch {
     return false;
   }
-  if (salt.length === 0 || expected.length === 0) return false;
+  if (salt.length === 0) return false;
+  if (
+    expected.length < MIN_STORED_KEY_BYTES ||
+    expected.length > MAX_STORED_KEY_BYTES
+  ) {
+    return false;
+  }
 
   try {
     const actual = (await scrypt(password.normalize("NFKC"), salt, expected.length, {
