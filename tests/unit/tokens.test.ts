@@ -109,3 +109,65 @@ describe("normalizeTokens", () => {
     });
   });
 });
+
+describe("normalizeTokens: data from somewhere else", () => {
+  /**
+   * Four callers hand this untrusted input: localStorage, a `?share=`
+   * payload, a `?s=` short link, and an imported token file. A share link
+   * carrying `displayFont: {}` used to reach loadFontFamily, where
+   * `family.replace(...)` threw inside an effect and dropped whoever opened
+   * the link into the recovery screen.
+   */
+  it.each([
+    ["an object where a font name belongs", { displayFont: { evil: 1 } }],
+    ["a number where a font name belongs", { bodyFont: 12345 }],
+    ["an array where a font name belongs", { monoFont: ["a"] }],
+    ["null where a colour belongs", { accent: null }],
+    ["a string where a number belongs", { radius: "huge" }],
+    ["an object where a number belongs", { spacing: {} }],
+    ["a boolean where a colour belongs", { darkPaper: true }],
+  ])("drops %s and keeps the default", (_label, payload) => {
+    // darkPaper marks the payload as modern, so the legacy accent migration
+    // does not re-derive colours and mask what is being tested here.
+    const result = normalizeTokens({ darkPaper: "#161a14", ...payload } as never);
+    const key = Object.keys(payload)[0] as keyof typeof defaultTokens;
+    expect(result[key]).toBe(defaultTokens[key]);
+    expect(typeof result[key]).toBe(typeof defaultTokens[key]);
+  });
+
+  it("leaves every token the right type, whatever it is handed", () => {
+    // Every single token replaced with an object, including through the
+    // legacy branch, which must still produce a usable system.
+    const hostile = Object.fromEntries(
+      Object.keys(defaultTokens).map((key) => [key, { not: "a token" }]),
+    );
+    const result = normalizeTokens(hostile as never);
+    for (const key of Object.keys(defaultTokens) as (keyof typeof defaultTokens)[]) {
+      expect(typeof result[key]).toBe(typeof defaultTokens[key]);
+    }
+  });
+
+  it("drops a non-finite number rather than exporting NaNpx", () => {
+    expect(normalizeTokens({ radius: Number.NaN } as never).radius).toBe(defaultTokens.radius);
+    expect(normalizeTokens({ spacing: Infinity } as never).spacing).toBe(defaultTokens.spacing);
+  });
+
+  it.each([null, undefined, "a string", 42, []])(
+    "survives being handed %s instead of an object",
+    (input) => {
+      expect(() => normalizeTokens(input as never)).not.toThrow();
+      expect(normalizeTokens(input as never).displayFont).toBe(defaultTokens.displayFont);
+    },
+  );
+
+  it("still keeps a good value next to a bad one", () => {
+    // The bad token must not take the whole payload down with it.
+    const result = normalizeTokens({
+      darkPaper: "#161a14",
+      accent: "#b7cc6a",
+      displayFont: {},
+    } as never);
+    expect(result.accent).toBe("#b7cc6a");
+    expect(result.displayFont).toBe(defaultTokens.displayFont);
+  });
+});

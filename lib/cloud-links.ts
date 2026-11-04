@@ -13,7 +13,6 @@
 
 import type { Mode, Project, Snapshot, Tokens } from "@/types/workspace";
 import { normalizeTokens } from "@/lib/tokens";
-import { defaultTokens } from "@/data/workspace";
 
 const KEY = "chromiq-cloud-links";
 
@@ -42,29 +41,6 @@ export const CLOUD_SCHEMA_VERSION = 1;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
-}
-
-/**
- * Keeps only the token entries whose primitive type matches the model.
- *
- * `normalizeTokens` merges over the defaults but does not coerce: it is written
- * for data this app produced, and the export gate reports a bad value rather
- * than hiding it. A row in the database is not that -- it can hold whatever an
- * older build, a newer build or a tampered-with request put there -- so a
- * string where a number belongs is dropped here and the default stands,
- * instead of travelling into state and out through an export as "huge px".
- */
-function usableTokens(value: unknown): Partial<Tokens> {
-  if (!isRecord(value)) return {};
-  const clean: Record<string, unknown> = {};
-  for (const [key, entry] of Object.entries(value)) {
-    const expected = typeof (defaultTokens as Record<string, unknown>)[key];
-    if (expected === "undefined") continue; // not a token this build knows
-    if (typeof entry !== expected) continue;
-    if (expected === "number" && !Number.isFinite(entry as number)) continue;
-    clean[key] = entry;
-  }
-  return clean as Partial<Tokens>;
 }
 
 export function readLinks(): CloudLinks {
@@ -154,7 +130,10 @@ export function fromCloudData(
     id: meta.id,
     name: meta.name,
     updatedAt: meta.updatedAt,
-    tokens: normalizeTokens(usableTokens(record.tokens)),
+    // normalizeTokens drops known tokens carrying the wrong type, so a row
+    // written by an older build, a newer one, or a tampered request cannot
+    // put a non-string where a font name belongs.
+    tokens: normalizeTokens((isRecord(record.tokens) ? record.tokens : {}) as Partial<Tokens>),
     mode,
     starter: typeof record.starter === "string" ? record.starter : "Editorial",
     snapshots,
