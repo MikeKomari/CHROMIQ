@@ -19,10 +19,18 @@ export const LEGAL_CONTACT = "michealkgt@gmail.com";
 export function LegalPage({
   title,
   intro,
+  lastUpdated = LAST_UPDATED,
   children,
 }: {
   title: string;
   intro: string;
+  /**
+   * When the page itself was last revised. Null hides the line: it belongs on
+   * a policy, where the revision date is the thing a reader checks, and is
+   * misleading on a page like the changelog whose entries carry their own
+   * dates.
+   */
+  lastUpdated?: string | null;
   children: React.ReactNode;
 }) {
   return (
@@ -32,7 +40,9 @@ export function LegalPage({
           <Link href="/" className="legal-wordmark" aria-label="CHROMIQ home">
             CHROMIQ
           </Link>
-          <nav aria-label="Legal" className="legal-nav">
+          <nav aria-label="Site" className="legal-nav">
+            <Link href="/changelog">Changelog</Link>
+            <Link href="/feedback">Feedback</Link>
             <Link href="/privacy">Privacy</Link>
             <Link href="/terms">Terms</Link>
           </nav>
@@ -43,9 +53,11 @@ export function LegalPage({
           <ArrowLeft size={14} aria-hidden="true" /> Back to home
         </Link>
         <h1>{title}</h1>
-        <p className="legal-meta">
-          Last updated <time dateTime={LAST_UPDATED}>{LAST_UPDATED}</time>
-        </p>
+        {lastUpdated && (
+          <p className="legal-meta">
+            Last updated <time dateTime={lastUpdated}>{lastUpdated}</time>
+          </p>
+        )}
         <p className="legal-intro">{intro}</p>
         <article className="legal-body">{children}</article>
       </main>

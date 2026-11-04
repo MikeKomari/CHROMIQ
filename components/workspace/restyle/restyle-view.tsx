@@ -1,4 +1,12 @@
-import { ArrowLeft, ExternalLink, Globe2, LoaderCircle, RefreshCw, X } from "lucide-react";
+import {
+  ArrowLeft,
+  ExternalLink,
+  Globe2,
+  LoaderCircle,
+  MessageSquareWarning,
+  RefreshCw,
+  X,
+} from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Tokens, View, Viewport } from "@/types/workspace";
 import { RestyleControls } from "./restyle-controls";
@@ -264,9 +272,21 @@ export function RestyleView({
             <div className="restyle-empty" role="alert">
               <h2>Could not load that page</h2>
               <p>{error}</p>
-              <button className="restyle-load" onClick={() => void load(lastUrl.current)}>
-                <RefreshCw size={13} /> Retry
-              </button>
+              <div className="restyle-error-actions">
+                <button className="restyle-load" onClick={() => void load(lastUrl.current)}>
+                  <RefreshCw size={13} /> Retry
+                </button>
+                {/* CHROMIQ-1007: the address that failed is the one thing a
+                    report needs, and the user should not have to retype it. */}
+                <a
+                  className="restyle-report"
+                  href={`/feedback?topic=site&url=${encodeURIComponent(lastUrl.current ?? "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <MessageSquareWarning size={13} aria-hidden="true" /> Report this site
+                </a>
+              </div>
             </div>
           )}
           {ready && (

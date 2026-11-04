@@ -223,6 +223,40 @@ export default function PrivacyPage() {
       </section>
 
       <section>
+        <h2>Feedback you send us</h2>
+        <p>
+          If you use the feedback page, what you send is stored in
+          CHROMIQ&apos;s own database and read by the person who maintains it.
+          No ticketing service or other third party is involved. A report
+          holds:
+        </p>
+        <ul>
+          <li>the time, what the report is about, and what you wrote;</li>
+          <li>
+            the address that failed, when you report a page that would not
+            load. The form shows it to you first and you can clear it;
+          </li>
+          <li>
+            your email address, only if you choose to give one, and only so a
+            reply is possible;
+          </li>
+          <li>your account, if you happened to be signed in when you sent it.</li>
+        </ul>
+        <p>
+          Your IP address is not stored with a report. Reports are kept for as
+          long as they are useful and no longer than six months. To have one
+          deleted sooner, write to{" "}
+          <a href={`mailto:${LEGAL_CONTACT}`}>{LEGAL_CONTACT}</a> — mention
+          roughly when you sent it, since an anonymous report is hard to find
+          otherwise.
+        </p>
+        <p>
+          Please do not put passwords or anything confidential in a report. It
+          is stored as you typed it.
+        </p>
+      </section>
+
+      <section>
         <h2>Google Fonts</h2>
         <p>
           The interface fonts (Space Grotesk, Inter, IBM Plex Mono) and any

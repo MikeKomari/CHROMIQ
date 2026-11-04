@@ -6,7 +6,9 @@ export function LandingFooter() {
     <footer className="ld-footer">
       <div className="ld-wrap ld-footer-inner">
         <ChromiqWordmark height={24} className="ld-wordmark" />
-        <nav className="ld-footer-links" aria-label="Legal">
+        <nav className="ld-footer-links" aria-label="Site">
+          <Link href="/changelog">Changelog</Link>
+          <Link href="/feedback">Feedback</Link>
           <Link href="/privacy">Privacy</Link>
           <Link href="/terms">Terms</Link>
         </nav>

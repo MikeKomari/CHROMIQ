@@ -24,3 +24,21 @@ There are no tagged releases yet. This section summarizes what exists today.
 - MIT license, contributing guide, and issue and pull request templates.
 - Optional accounts, cloud sync, short share links, and account deletion, all off unless a database is configured.
 - `CHROMIQ_ACCOUNTS` flag to force accounts and cloud sync on or off independently of `DATABASE_URL`, so the rest of the app can be worked on without a reachable database.
+- Cloud project sync in the workbench: opt in per project, autosave after that, a visible and retryable failure state, and a conflict dialog that never picks a winner for you.
+- Diagnostics kept in CHROMIQ's own database rather than sent to an analytics vendor: errors from both boundaries, proxy and inspector failure reasons, Core Web Vitals from real sessions, and feature use. Off unless `NEXT_PUBLIC_CHROMIQ_TELEMETRY` is set.
+- In-product feedback at `/feedback`, prefilled with the address that failed when it is reached from a failed load.
+- A public changelog at `/changelog`, generated from this file.
+- A dedicated 1200x630 social card, generated from `brand/web/social-card.html`.
+
+### Changed
+
+- The proxy and inspector now share one rate-limit quota across server instances instead of one per warm instance.
+- A tag deploy waits for the same lint, type-check, test and build run that pull requests get; it used to deploy straight from the checkout.
+- The installed app's window and splash screen follow the dark theme instead of flashing white.
+
+### Fixed
+
+- A truncated password hash no longer verifies. scrypt output is prefix-stable, so a shortened stored hash matched the prefix of a real derivation.
+- `rate_limits` rows are pruned; closed windows were kept for ever.
+- Links inside the text of the privacy, terms, changelog and feedback pages are underlined. They had neither underline nor a distinct colour, so they were indistinguishable from the text around them.
+- The header navigation on those pages no longer pushes the page sideways on a narrow phone.

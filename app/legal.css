@@ -14,14 +14,26 @@
 .legal *::before,
 .legal *::after { box-sizing: border-box; }
 .legal a { color: var(--text); text-underline-offset: 3px; }
+/* Tailwind's preflight sets `text-decoration: inherit` on anchors, and .legal
+   gives links the same colour as body text, so a link inside a paragraph was
+   signalled by nothing at all -- not even colour. Underline the ones that sit
+   in prose; the wordmark, the nav and the back link set their own. */
+.legal-body a, .legal-intro a { text-decoration: underline; }
 .legal a:hover { color: var(--accent-fg); }
 .legal :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: var(--radius-control); }
 .legal h1, .legal h2, .legal h3, .legal p, .legal ul { margin: 0; padding: 0; }
 .legal-wrap { width: 100%; max-width: 760px; margin-inline: auto; padding-inline: clamp(16px, 4vw, 32px); }
 .legal-bar { border-bottom: 1px solid var(--line); background: var(--bg); }
 .legal-bar-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 64px; max-width: 1280px; }
+.legal-bar-inner > * { min-width: 0; }
 .legal-wordmark { font: 700 20px var(--lg-display); letter-spacing: 0.18em; text-decoration: none; }
-.legal-nav { display: flex; gap: 24px; font: 500 12px var(--lg-mono); text-transform: uppercase; letter-spacing: 0.08em; }
+/* Four links no longer fit beside the wordmark on a narrow phone, so the row
+   wraps and the gap tightens rather than pushing the page sideways. */
+.legal-nav { display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: flex-end; font: 500 12px var(--lg-mono); text-transform: uppercase; letter-spacing: 0.08em; }
+@media (max-width: 560px) {
+  .legal-nav { gap: 8px 14px; letter-spacing: 0.05em; }
+  .legal-bar-inner { flex-wrap: wrap; padding-block: 12px; }
+}
 .legal-nav a { color: var(--muted); text-decoration: none; padding: 8px 0; }
 .legal-nav a:hover { color: var(--text); }
 .legal-main { padding-block: 40px 96px; }
@@ -41,3 +53,128 @@
 .legal-body li::before { content: ""; position: absolute; left: 4px; top: 0.8em; width: 6px; height: 1px; background: var(--muted); }
 .legal-body code { font: 500 0.88em var(--lg-mono); padding: 1px 6px; border: 1px solid var(--line); border-radius: var(--radius-control); background: var(--panel-2); }
 .legal-note { margin-top: 12px; padding: 12px 16px; border: 1px solid var(--line); border-radius: var(--radius-control); background: var(--panel); color: var(--muted); font-size: 14px; }
+
+/* ---------------------------------------------------------------------------
+   Feedback form and changelog (CHROMIQ-1007). Both sit inside the LegalPage
+   shell, so they inherit its measure, type scale and back link.
+   --------------------------------------------------------------------------- */
+.legal .feedback-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+.legal .feedback-form fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 18px;
+  padding: 0;
+  border: 0;
+}
+.legal .feedback-form legend {
+  padding: 0 0 10px;
+  font-weight: 600;
+}
+.legal .feedback-topic {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.legal .feedback-topic:focus-within {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.legal .feedback-topic input {
+  margin-top: 3px;
+  accent-color: var(--accent);
+}
+.legal .feedback-topic strong {
+  display: block;
+  font-weight: 500;
+}
+.legal .feedback-topic small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.legal .feedback-form label {
+  margin-top: 14px;
+  font-weight: 500;
+}
+.legal .feedback-form input,
+.legal .feedback-form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 1rem;
+}
+.legal .feedback-form textarea {
+  resize: vertical;
+  min-height: 7em;
+}
+.legal .feedback-form input:focus-visible,
+.legal .feedback-form textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+.legal .feedback-hint {
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.legal .feedback-form .primary-button,
+.legal .feedback-done .secondary-button {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 22px;
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+.legal .feedback-done .secondary-button {
+  background: transparent;
+  color: inherit;
+  border-color: var(--line);
+}
+.legal .feedback-form .primary-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.legal .feedback-form .error-message {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  line-height: 1.6;
+}
+.legal .feedback-done h2 {
+  margin-top: 12px;
+}
+.legal .changelog-date {
+  color: var(--muted);
+  font-size: 0.875em;
+  font-weight: 400;
+}
+.legal .changelog-group h3 {
+  margin-top: 22px;
+}

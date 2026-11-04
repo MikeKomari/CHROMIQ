@@ -330,3 +330,32 @@
     animation: none !important;
   }
 }
+
+/* The failed-load state offers a retry and a prefilled report (CHROMIQ-1007). */
+.restyle-error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.restyle-report {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  color: var(--muted);
+  font-size: var(--fs-xs);
+  text-decoration: none;
+  transition:
+    color 0.2s,
+    border-color 0.2s,
+    background 0.2s;
+}
+.restyle-report:hover {
+  color: var(--text);
+  border-color: var(--line-strong);
+  background: var(--panel);
+}
