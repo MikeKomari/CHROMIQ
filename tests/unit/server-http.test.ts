@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import {
   BODY_TOO_LARGE,
@@ -99,16 +99,69 @@ describe("validateCredentials", () => {
 });
 
 describe("clientKey", () => {
-  it("uses the first hop of x-forwarded-for", () => {
-    // The rest of the chain is whatever the client sent; only the first entry
-    // is the address the edge saw.
-    expect(clientKey(request({ "x-forwarded-for": "203.0.113.5, 10.0.0.1, 10.0.0.2" }))).toBe(
-      "203.0.113.5",
-    );
+  const ORIGINAL = process.env.CHROMIQ_TRUSTED_PROXY_HOPS;
+  afterEach(() => {
+    if (ORIGINAL === undefined) delete process.env.CHROMIQ_TRUSTED_PROXY_HOPS;
+    else process.env.CHROMIQ_TRUSTED_PROXY_HOPS = ORIGINAL;
+  });
+
+  it("uses the only entry when one proxy set it", () => {
+    expect(clientKey(request({ "x-forwarded-for": "203.0.113.5" }))).toBe("203.0.113.5");
+  });
+
+  it("ignores what the caller prepended", () => {
+    // A proxy appends what it saw, so a forged value stays in front of it.
+    // Reading from the left handed the caller a fresh quota on demand.
+    expect(
+      clientKey(request({ "x-forwarded-for": "1.2.3.4, 203.0.113.5" })),
+    ).toBe("203.0.113.5");
+  });
+
+  it("ignores a whole forged chain", () => {
+    expect(
+      clientKey(request({ "x-forwarded-for": "1.1.1.1, 2.2.2.2, 3.3.3.3, 203.0.113.5" })),
+    ).toBe("203.0.113.5");
   });
 
   it("trims whitespace around the address", () => {
     expect(clientKey(request({ "x-forwarded-for": "  203.0.113.5  " }))).toBe("203.0.113.5");
+  });
+
+  it("skips further entries when more proxies are declared", () => {
+    process.env.CHROMIQ_TRUSTED_PROXY_HOPS = "2";
+    expect(
+      clientKey(request({ "x-forwarded-for": "1.2.3.4, 203.0.113.5, 10.0.0.1" })),
+    ).toBe("203.0.113.5");
+  });
+
+  it("clamps rather than walking off the front of a short chain", () => {
+    // Two proxies declared, one entry present: it must not fall through to
+    // something the caller could have written.
+    process.env.CHROMIQ_TRUSTED_PROXY_HOPS = "3";
+    expect(clientKey(request({ "x-forwarded-for": "203.0.113.5" }))).toBe("203.0.113.5");
+  });
+
+  it("trusts nothing when no proxy is declared", () => {
+    // Reachable directly: every caller shares one bucket, which over-limits
+    // rather than under-limits.
+    process.env.CHROMIQ_TRUSTED_PROXY_HOPS = "0";
+    expect(clientKey(request({ "x-forwarded-for": "1.2.3.4, 203.0.113.5" }))).toBe("unknown");
+  });
+
+  it.each(["-1", "abc", "1.5", ""])(
+    "falls back to one hop for the unusable setting %p",
+    (value) => {
+      process.env.CHROMIQ_TRUSTED_PROXY_HOPS = value;
+      expect(
+        clientKey(request({ "x-forwarded-for": "1.2.3.4, 203.0.113.5" })),
+      ).toBe("203.0.113.5");
+    },
+  );
+
+  it("caps the hop count, so a huge value cannot reach the forged end", () => {
+    process.env.CHROMIQ_TRUSTED_PROXY_HOPS = "9999";
+    const chain = Array.from({ length: 12 }, (_, i) => `10.0.0.${i}`).join(", ");
+    expect(clientKey(request({ "x-forwarded-for": `1.2.3.4, ${chain}` }))).not.toBe("1.2.3.4");
   });
 
   it("falls back to x-real-ip when the forwarded header is absent", () => {
@@ -116,7 +169,6 @@ describe("clientKey", () => {
   });
 
   it("falls back to x-real-ip when the forwarded header is empty", () => {
-    // An empty first hop must not become the key: every caller would share it.
     expect(
       clientKey(request({ "x-forwarded-for": "", "x-real-ip": "198.51.100.9" })),
     ).toBe("198.51.100.9");
@@ -128,9 +180,10 @@ describe("clientKey", () => {
   });
 
   it("returns a constant when the headers are blank", () => {
-    expect(clientKey(request({ "x-forwarded-for": "   ", "x-real-ip": "  " }))).toBe("unknown");
+    expect(clientKey(request({ "x-forwarded-for": " , , ", "x-real-ip": "  " }))).toBe("unknown");
   });
 });
+
 
 describe("readJsonBody", () => {
   /** A stand-in for NextRequest carrying a body as a stream, as a real

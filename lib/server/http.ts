@@ -11,10 +11,58 @@ export function tooManyRequests(retryAfterSeconds: number) {
   );
 }
 
-/** Best-effort caller identity for rate limiting. */
+/**
+ * How many proxies sit in front of this deployment.
+ *
+ * One is the common case and the default: a CDN or a single reverse proxy.
+ * Zero means the app is reachable directly, so no forwarding header can be
+ * believed at all and every caller shares one bucket -- heavy-handed, but it
+ * fails towards limiting too much rather than too little.
+ */
+function trustedProxyHops() {
+  // A blank value is "not set", not zero. `Number("")` is 0, so reading this
+  // straight through would turn a commented-out line in .env into "trust no
+  // header", quietly collapsing every caller into one bucket.
+  const text = process.env.CHROMIQ_TRUSTED_PROXY_HOPS?.trim();
+  if (!text) return 1;
+  const raw = Number(text);
+  if (!Number.isInteger(raw) || raw < 0) return 1;
+  return Math.min(raw, 10);
+}
+
+/**
+ * Who to count a request against, for rate limiting.
+ *
+ * This used to read the FIRST entry of `x-forwarded-for`, which is the one
+ * entry in the header the client controls: a proxy appends what it saw, so
+ * anything the caller sent stays in front of it. Rotating the header
+ * therefore bought a fresh quota on every route. Measured: the feedback
+ * endpoint allows five reports an hour, and thirteen went in -- five
+ * honestly, then eight more with a different spoofed address each time. The
+ * same trick lifted the per-address limit off the login route, leaving only
+ * the per-account one.
+ *
+ * So the chain is counted from the RIGHT instead. With one proxy in front,
+ * the last entry is the address that proxy actually observed, and whatever
+ * the client prepended sits harmlessly before it. `CHROMIQ_TRUSTED_PROXY_HOPS`
+ * moves the position for a deployment with more than one.
+ */
 export function clientKey(request: NextRequest) {
-  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  return forwarded || request.headers.get("x-real-ip")?.trim() || "unknown";
+  const hops = trustedProxyHops();
+  if (hops === 0) return "unknown";
+
+  const chain = (request.headers.get("x-forwarded-for") ?? "")
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+  if (chain.length) {
+    // The entry the nearest trusted proxy wrote. Clamped, so a short chain
+    // cannot be used to walk off the front of the list into a forged value.
+    return chain[Math.max(0, chain.length - hops)];
+  }
+
+  // Set by the proxy in the same way, and trusted on the same terms.
+  return request.headers.get("x-real-ip")?.trim() || "unknown";
 }
 
 /**
