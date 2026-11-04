@@ -107,3 +107,102 @@
 .color-row-swatch[aria-expanded="true"] {
   box-shadow: 0 0 0 2px var(--panel-2), 0 0 0 3px var(--text);
 }
+
+/* ---------------------------------------------------------------------------
+   Headless capture (CHROMIQ-702), inside the inspect dialog.
+
+   Visibly separated from the reconstruction above it: that is a guess from
+   stylesheets, this is a photograph of someone else's page. The rule in
+   DESIGN.md is that the preview states are never blurred together.
+   --------------------------------------------------------------------------- */
+.capture-panel {
+  margin-top: 26px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+.capture-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.capture-head h3 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--fs-md);
+  font-weight: 500;
+}
+.capture-copy {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+}
+.capture-result {
+  margin-top: 18px;
+}
+.capture-shot {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-popover);
+  /* A capture of an unknown page: let it sit on a neutral field rather than
+     on whatever the workbench chrome happens to be. */
+  background: var(--panel-2);
+}
+.capture-url {
+  margin: 12px 0 0;
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+}
+.capture-url code {
+  color: var(--muted);
+  font-size: var(--fs-xs);
+  word-break: break-all;
+}
+.capture-measured {
+  margin-top: 18px;
+}
+.capture-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.capture-swatches li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+.capture-fonts {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+.capture-measured .secondary-button {
+  margin-top: 14px;
+}
+.capture-notes {
+  margin: 18px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: var(--fs-xs);
+  line-height: 1.6;
+}
+.capture-panel .error-message {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}

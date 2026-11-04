@@ -65,6 +65,31 @@ npm run lint
 
 CHROMIQ exports the active token system to CSS custom properties, Tailwind v4, shadcn/ui variables, a JSON token file, a portable project file, and a generated DESIGN.md summary. Every format is copyable and downloadable, and failing tokens are flagged before download.
 
+## Headless capture (optional)
+
+The inspector fetches a page's HTML with scripts off, which is honest but
+leaves a client-rendered site looking empty. With `CHROMIQ_CAPTURE=on` and a
+browser installed on the server, CHROMIQ can render the page instead and
+report colours and fonts measured from what was actually painted.
+
+```bash
+npm install --no-save playwright && npx playwright install chromium
+CHROMIQ_CAPTURE=on npm run start
+```
+
+It is off by default and not a dependency: it needs a browser binary that most
+serverless hosts do not have. Where it is unavailable the control is hidden
+rather than shown and broken, and `GET /api/capture` answers `501`.
+
+A browser does its own DNS and follows its own redirects, so the SSRF
+protection that guards the other outbound routes does not apply to it. Every
+request it makes — the first navigation, each redirect hop, and every image,
+stylesheet and font — is checked against the same private-address rules first,
+and the guard walks redirect chains itself rather than letting the browser do
+it. `tests/integration/capture-ssrf.test.ts` holds that to account against a
+real Chromium; two redirect bugs in this code passed review and were caught
+there.
+
 ## Supported browsers
 
 CHROMIQ targets the current and previous versions of Chrome, Edge, Firefox and
@@ -129,6 +154,8 @@ lib/safe-fetch.ts       SSRF-safe fetch used by the inspector and proxy
 lib/url-safety.ts       public-URL and private-address validation
 lib/rate-limit.ts       in-process limiter; the shared one is lib/server/rate-limit-db.ts
 lib/telemetry.ts        client diagnostics; lib/server/telemetry.ts writes them
+lib/server/capture.ts   headless capture and its per-request SSRF guard
+tests/integration/      tests that need a real browser; they skip without one
 scripts/verify-browsers.mjs  the browser and device matrix smoke test
 hooks/use-workspace.ts  token state, undo history, persistence, and exports
 data/workspace.ts       default tokens, starter presets, and the font catalog

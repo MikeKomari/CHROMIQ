@@ -7,6 +7,9 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["tests/unit/**/*.test.ts"],
+    include: ["tests/unit/**/*.test.ts", "tests/integration/**/*.test.ts"],
+    // A browser capture is slower than any unit test here.
+    testTimeout: 30_000,
+    hookTimeout: 120_000,
   },
 });

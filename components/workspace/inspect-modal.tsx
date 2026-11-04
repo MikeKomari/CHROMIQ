@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { Tokens } from "@/types/workspace";
+import { CapturePanel } from "@/components/workspace/capture-panel";
 
 type Confidence = "high" | "medium" | "low";
 type Suggestion = {
@@ -348,6 +349,29 @@ export function InspectModal({
             </div>
           </div>
         )}
+        {/* A third preview state, kept visibly apart from the reconstruction
+            above: that one is a guess from stylesheets, this one is a
+            photograph. It hides itself where no browser is available. */}
+        <CapturePanel
+          url={url}
+          readOnly={readOnly}
+          onColors={(colors) => {
+            // The render's two most-painted colours are its background and
+            // its text, in that order; the brightest remaining one is the
+            // closest thing to an accent without guessing further.
+            const [background, foreground, ...rest] = colors;
+            const accent = rest.find((value) => value !== background && value !== foreground);
+            const next: Partial<Tokens> = {};
+            if (background) next.darkPaper = background;
+            if (foreground) next.darkInk = foreground;
+            if (accent) next.darkAccent = accent;
+            const allowed = Object.fromEntries(
+              Object.entries(next).filter(([token]) => !locked.includes(token)),
+            );
+            if (Object.keys(allowed).length) apply(allowed);
+            close();
+          }}
+        />
       </section>
     </div>
   );

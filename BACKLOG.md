@@ -455,7 +455,9 @@ Product backlog for the CHROMIQ visual design workbench. Tickets use a Jira-like
 ### CHROMIQ-702 — Headless browser capture
 
 - **Priority:** P2
-- **Status:** BACKLOG
+- **Status:** DONE
+- **Closed:** `CHROMIQ_CAPTURE=on` plus a browser on the server. Off by default and hidden rather than broken where there is none, so the "needs a browser binary" note no longer blocks the ticket: the feature is present wherever a binary is, and absent honestly where it is not.
+- **On the third criterion:** a browser does its own DNS and follows its own redirects, so `safeFetch`'s pinning does not protect it. Every request it makes is gated instead, and the guard walks redirect chains itself. Two bugs here passed review and were caught by `tests/integration/capture-ssrf.test.ts`, which CI now runs with Chromium installed rather than letting it skip.
 - **User story:** As a user, I want CHROMIQ to capture a consistent view of a public site.
 - **Scope:** Browser worker, screenshot, DOM snapshot, computed styles, viewport presets.
 - **Acceptance criteria:**
@@ -754,8 +756,7 @@ without needing a domain.
 - **Added:** CHROMIQ-202 (light/dark theme pairs) and CHROMIQ-706 (URL design import).
 - **Added (scales, auto-fix, vision batch):** CHROMIQ-207, 208, 305, 606, 607. Shape panel "Reset" now resets shape tokens (one undoable change, lock-aware). Re-importing a CHROMIQ CSS export no longer warns about the derived scale variables.
 - **Added (builder redesign):** CHROMIQ-105, 209, 306, 307. The workbench light chrome now applies (its selector never matched before).
-- **Closed since (production readiness):** 802 and 805 on self-hosted Postgres with reversible migrations under `migrations/`; 1001, 1002, 1003, 1005 and 1007.
-- **Still intentionally open:** headless browser capture (702, needs a browser binary in production).
+- **Closed since (production readiness):** 802 and 805 on self-hosted Postgres with reversible migrations under `migrations/`; 1001, 1002, 1003, 1005 and 1007. 702 as well, behind `CHROMIQ_CAPTURE`.
 - **Partly open:** 1006 — Chromium and two emulated phone profiles pass; Safari, Firefox and a real handset are unverified and the README says so. 1004 is blocked on a legal review and a governing-law decision, neither of which is an engineering task.
 - **Verification run:** `npm run build` passes and 843 unit tests pass; `npm run start` serves `/`, `/workspace`, `/changelog` and `/feedback` with HTTP 200; private URL inspection is rejected with HTTP 400. Against a real Postgres: sign-up, first sync, autosave, a second browser opening the synced project, an aborted save showing the retry control and recovering, a rejected revision opening the conflict dialog with both resolutions landing the right revision; Core Web Vitals written from a real browser session; a feedback report stored with its URL and release.
 - **Build footprint:** First Load JS: `/workspace` ≈ 204 kB (shared ≈ 103 kB). The 176 kB in an earlier revision of this note was already out of date when it was written; cloud sync, the vitals reporter and the conflict dialog added about 4 kB between them.

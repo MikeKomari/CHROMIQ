@@ -8,6 +8,9 @@
 # typescript build info
 *.tsbuildinfo
 
+# scratch bundle used when driving lib/server/capture.ts outside Next
+/.capture-build/
+
 # environment (never commit real keys)
 .env
 .env.*

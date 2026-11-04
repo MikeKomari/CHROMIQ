@@ -30,6 +30,7 @@ There are no tagged releases yet. This section summarizes what exists today.
 - A public changelog at `/changelog`, generated from this file.
 - A dedicated 1200x630 social card, generated from `brand/web/social-card.html`.
 - `scripts/verify-browsers.mjs`, a browser and device matrix smoke test that runs the same checks across every installed Playwright engine and two emulated phone profiles.
+- Optional headless capture (`CHROMIQ_CAPTURE=on`): renders a public page in a real browser and reports colours and fonts measured from the render, with every request it makes checked against the same private-address rules as the inspector. Off by default, and hidden rather than broken where no browser is installed.
 
 ### Changed
 

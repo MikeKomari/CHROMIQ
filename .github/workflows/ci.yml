@@ -39,3 +39,40 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  # The capture guard is an SSRF control, and the two redirect bugs it has had
+  # both passed review and both failed here. Skipping it in CI would mean the
+  # test exists and never runs, so Chromium is installed for this job alone.
+  # Only Chromium, and only here: the verify job above stays fast.
+  capture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright and Chromium
+        run: npx --yes playwright@1.49.1 install --with-deps chromium
+
+      - name: Capture integration tests
+        run: npx vitest run tests/integration --reporter=default --reporter=json --outputFile=/tmp/capture.json
+
+      - name: Fail if they silently skipped
+        run: |
+          # The suite skips itself where Playwright is missing, which is right
+          # on a developer's machine and wrong here: a green tick over a
+          # security control that never ran is worse than a red one.
+          node -e '
+            const r = require("/tmp/capture.json");
+            if (!r.numTotalTests || r.numPassedTests === 0) {
+              console.error("The capture tests did not run. Chromium is probably missing.");
+              process.exit(1);
+            }
+            console.log(r.numPassedTests + " capture tests ran.");
+          '
