@@ -54,6 +54,7 @@ export function CanvasArea({
   readOnly,
   inspectorOpen,
   toggleInspector,
+  covered = false,
 }: {
   mode: Mode;
   view: View;
@@ -79,6 +80,8 @@ export function CanvasArea({
   readOnly: boolean;
   inspectorOpen: boolean;
   toggleInspector: () => void;
+  /** True while a narrow-layout overlay is covering the canvas. */
+  covered?: boolean;
 }) {
   const [vision, setVision] = useState<VisionMode>("none");
   const size =
@@ -200,7 +203,23 @@ export function CanvasArea({
   }, [selecting, frame]);
 
   return (
-    <motion.section className="canvas-area" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1, ease: "easeOut" }}>
+    <motion.section
+      className="canvas-area"
+      /*
+       * Below the breakpoints the context panel and the inspector open OVER
+       * the canvas, and the toolbar underneath stayed tabbable and visible to
+       * a screen reader while being invisible and untappable. Tab could land
+       * on Undo behind the drawer, and a tap on it hit the drawer instead.
+       * `inert` takes the whole canvas out of the tab order, out of the
+       * accessibility tree and out of hit testing while it is covered, which
+       * is what being behind an overlay should mean. Found with an emulated
+       * phone profile in scripts/verify-browsers.mjs (CHROMIQ-1006).
+       */
+      inert={covered}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: 0.1, ease: "easeOut" }}
+    >
       <CanvasHeader
         view={view}
         setView={setView}

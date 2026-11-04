@@ -29,6 +29,7 @@ There are no tagged releases yet. This section summarizes what exists today.
 - In-product feedback at `/feedback`, prefilled with the address that failed when it is reached from a failed load.
 - A public changelog at `/changelog`, generated from this file.
 - A dedicated 1200x630 social card, generated from `brand/web/social-card.html`.
+- `scripts/verify-browsers.mjs`, a browser and device matrix smoke test that runs the same checks across every installed Playwright engine and two emulated phone profiles.
 
 ### Changed
 
@@ -42,3 +43,4 @@ There are no tagged releases yet. This section summarizes what exists today.
 - `rate_limits` rows are pruned; closed windows were kept for ever.
 - Links inside the text of the privacy, terms, changelog and feedback pages are underlined. They had neither underline nor a distinct colour, so they were indistinguishable from the text around them.
 - The header navigation on those pages no longer pushes the page sideways on a narrow phone.
+- Controls behind the inspector drawer are inert on narrow layouts. The canvas toolbar stayed tabbable and present to a screen reader while invisible and untappable behind the open drawer.

@@ -339,6 +339,10 @@ export function Workspace() {
               readOnly={readOnly}
               inspectorOpen={layout.inspectorOpen}
               toggleInspector={layout.toggleInspector}
+              covered={
+                (layout.narrowPanel && layout.panelOverlay) ||
+                (layout.narrowInspector && layout.inspectorDrawer)
+              }
             />
           )}
           <Inspector

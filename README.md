@@ -22,7 +22,7 @@ A browser-first visual design workbench for frontend developers. Tune a live tok
 - **Reading comfort** — a calm Comfort mode (default) and a High-contrast mode, switchable on the landing page and in the workspace. The choice is remembered in the browser.
 - **Six preview surfaces** — SaaS, dashboard, commerce, docs, editorial, and type specimen, all driven by the same tokens. Text in each surface is editable in place.
 - **Restyle any website** — paste a link and CHROMIQ loads a scripts-off copy through a server proxy (`/api/proxy`: SSRF-checked, size and time limited, rate limited). Change type, colors, accent, and radius live, then copy the override CSS. It is a static preview, not the live site, so pages built entirely with JavaScript may render incompletely and some sites cannot be fetched.
-- **CHROMIQ on any site bookmarklet** — a drag-to-bookmarks-bar button (`public/chromiq-widget.js`) opens a floating restyle panel over the live page you are on. Sites with strict Content Security Policies can block bookmarklets or Google Fonts; use paste-a-link on those.
+- **CHROMIQ on any site bookmarklet** — a drag-to-bookmarks-bar button (`public/chromiq-widget.js`) opens a floating restyle panel over the live page you are on. A strict Content Security Policy stops it; see [The bookmarklet and Content Security Policy](#the-bookmarklet-and-content-security-policy) for exactly what each policy does, and use paste-a-link on those sites.
 
 ## Stack
 
@@ -65,6 +65,57 @@ npm run lint
 
 CHROMIQ exports the active token system to CSS custom properties, Tailwind v4, shadcn/ui variables, a JSON token file, a portable project file, and a generated DESIGN.md summary. Every format is copyable and downloadable, and failing tokens are flagged before download.
 
+## Supported browsers
+
+CHROMIQ targets the current and previous versions of Chrome, Edge, Firefox and
+Safari on desktop, and current Chrome and Safari on phones and tablets. It
+needs `localStorage` to remember anything between sessions; everything else is
+standard.
+
+What has actually been verified, as opposed to targeted:
+
+| Browser | Verified | How |
+| --- | --- | --- |
+| Chrome / Edge (Chromium 141) | Yes | `scripts/verify-browsers.mjs`, 28 checks across four viewports |
+| Firefox | **No** | The engine could not be installed in the environment the checks were run in |
+| Safari (WebKit) | **No** | As above |
+| Real phone | **No** | Only emulated iPhone 14 and Pixel 7 profiles, which set viewport, scale, touch and user agent but not a real renderer, GPU or font stack |
+
+To fill in the rest, run the matrix yourself against a production build:
+
+```bash
+npm run build
+npm run start &
+npx playwright@1.49.1 install chromium firefox webkit   # once
+node scripts/verify-browsers.mjs
+```
+
+Engines that are not installed are reported as "not installed" rather than
+quietly skipped, so a partial matrix reads as a partial matrix. Playwright is
+deliberately not a dependency: this is a release check, not something every
+`npm install` should download three browsers for.
+
+## The bookmarklet and Content Security Policy
+
+"CHROMIQ on any site" injects `public/chromiq-widget.js` into the page you are
+on. A site's Content Security Policy can stop that, and the behaviour below was
+measured against real CSP headers in Chromium rather than reasoned about:
+
+| The site sends | What happens |
+| --- | --- |
+| No CSP | Works. |
+| `script-src 'self'` or `default-src 'self'` | **The widget never loads.** The browser refuses the script before any CHROMIQ code runs, so there is no panel and no error in the page. Nothing can be done from CHROMIQ's side; this is the policy working as intended. |
+| A CSP that allows CHROMIQ's origin in `script-src` | Works. |
+| …but `style-src 'self'` with no `'unsafe-inline'` | The panel loads and **restyling still works**, because the widget sets styles through the CSSOM (`element.style.…`), which CSP does not govern. The panel's own stylesheet is refused, so the controls appear unstyled and full-width rather than as a 300px panel. |
+| …but `fonts.googleapis.com` is not in `style-src` | Font choices appear to apply but do not: the widget sets the family while the browser refuses the Google Fonts stylesheet, so the page falls back to a generic serif or sans. The panel does not currently warn about this. |
+| `sandbox allow-scripts` | Works. |
+
+In short: a strict `script-src` is a hard stop, and a strict `style-src` leaves
+the widget working but looking broken. A site cannot be restyled from the
+bookmarklet unless it is willing to allow CHROMIQ's origin as a script source.
+The scripts-off preview at `/workspace` (restyle view) is the way round this,
+because the page is fetched server-side rather than injected into.
+
 ## Project structure
 
 ```
@@ -76,13 +127,15 @@ components/workspace/restyle/   restyle view, engine, controls, and state
 public/chromiq-widget.js  the "CHROMIQ on any site" bookmarklet panel
 lib/safe-fetch.ts       SSRF-safe fetch used by the inspector and proxy
 lib/url-safety.ts       public-URL and private-address validation
-lib/rate-limit.ts       in-memory rate limiter and concurrency slots
+lib/rate-limit.ts       in-process limiter; the shared one is lib/server/rate-limit-db.ts
+lib/telemetry.ts        client diagnostics; lib/server/telemetry.ts writes them
+scripts/verify-browsers.mjs  the browser and device matrix smoke test
 hooks/use-workspace.ts  token state, undo history, persistence, and exports
 data/workspace.ts       default tokens, starter presets, and the font catalog
 lib/                    color math, contrast, importers, font loader, validation
 types/workspace.ts      token and workspace types
 DESIGN.md               visual source of truth
-BACKLOG.md              Jira-style product backlog (epics CHROMIQ-100–CHROMIQ-900)
+BACKLOG.md              Jira-style product backlog (epics CHROMIQ-100–CHROMIQ-1000)
 ```
 
 ## Design and product
