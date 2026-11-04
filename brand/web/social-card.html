@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>CHROMIQ social card</title>
+    <!--
+      Source for public/social-card.png (CHROMIQ-1003).
+
+      Re-render it after any brand change, from the repository root:
+
+        node brand/web/render-social-card.mjs
+
+      The card is 1200x630, the size Open Graph and Twitter's
+      summary_large_image both read at. The wordmark is the outlined artwork
+      from brand/chromiq-horizontal-on-dark.svg, so it needs no webfont and
+      cannot drift from the brand asset. Per brand/GUIDELINES.md the on-dark
+      logo sits on Night; nothing on the card claims a number, a customer or a
+      rating, and the swatches are the product's real default dark tokens.
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --night: #0f0d14;
+        --indigo: #4b0082;
+        --violet: #a283e6;
+        --gold: #ffc857;
+        --wordmark: #eeecf3;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1200px; height: 630px; }
+      body {
+        background: var(--night);
+        color: var(--wordmark);
+        font-family: "Space Grotesk", "Inter", system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        overflow: hidden;
+      }
+      .card {
+        position: relative;
+        width: 1200px;
+        height: 630px;
+        padding: 72px 78px;
+        display: grid;
+        grid-template-columns: 1fr 384px;
+        align-items: center;
+        gap: 56px;
+      }
+      /* A single soft indigo wash, no gradient on the logo itself. */
+      .wash {
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(900px 520px at 88% -12%, rgba(75, 0, 130, 0.55), transparent 70%),
+          radial-gradient(620px 420px at 6% 112%, rgba(162, 131, 230, 0.18), transparent 72%);
+      }
+      .hairline {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 6px;
+        background: linear-gradient(90deg, var(--indigo), var(--violet) 55%, var(--gold));
+      }
+      .card > *:not(.wash):not(.hairline) { position: relative; }
+      .logo { width: 408px; height: auto; display: block; }
+      .tagline {
+        margin-top: 40px;
+        font-size: 56px;
+        font-weight: 500;
+        line-height: 1.08;
+        letter-spacing: -0.022em;
+        max-width: 17ch;
+      }
+      .tagline em { font-style: normal; color: var(--violet); }
+      .blurb {
+        margin-top: 30px;
+        font-size: 23px;
+        line-height: 1.5;
+        color: rgba(238, 236, 243, 0.66);
+        max-width: 40ch;
+      }
+      /* The export panel: the product's real default dark tokens, written the
+         way the CSS export writes them. No invented numbers or claims. */
+      .panel {
+        border: 1px solid rgba(238, 236, 243, 0.13);
+        border-radius: 20px;
+        background: rgba(22, 26, 20, 0.72);
+        padding: 26px 28px 28px;
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+      }
+      .panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 14px;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: rgba(238, 236, 243, 0.42);
+        padding-bottom: 16px;
+        margin-bottom: 18px;
+        border-bottom: 1px solid rgba(238, 236, 243, 0.1);
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 16px;
+        line-height: 2.05;
+        color: rgba(238, 236, 243, 0.78);
+      }
+      .chip {
+        width: 18px;
+        height: 18px;
+        border-radius: 5px;
+        flex: none;
+        border: 1px solid rgba(238, 236, 243, 0.18);
+      }
+      .row .value { margin-left: auto; color: rgba(238, 236, 243, 0.5); }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="wash"></div>
+      <div class="lede">
+        <svg class="logo" viewBox="-16 -17.15 1135.32 289.15" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CHROMIQ"><title>CHROMIQ logo for dark backgrounds</title><path fill="#A283E6" d="M20 70.88A29.45 29.45 0 0 1 49.45 41.42L206.55 41.42A29.45 29.45 0 0 1 236 70.88L236 185.12A29.45 29.45 0 0 1 206.55 214.58L49.45 214.58A29.45 29.45 0 0 1 20 185.12ZM24.46 185.12A24.99 24.99 0 0 0 49.45 210.12L206.55 210.12A24.99 24.99 0 0 0 231.54 185.12L231.54 70.88A24.99 24.99 0 0 0 206.55 45.88L49.45 45.88A24.99 24.99 0 0 0 24.46 70.88Z"/><path fill="#4B0082" d="M24.46 70.88A24.99 24.99 0 0 1 49.45 45.88L206.55 45.88A24.99 24.99 0 0 1 231.54 70.88L231.54 185.12A24.99 24.99 0 0 1 206.55 210.12L49.45 210.12A24.99 24.99 0 0 1 24.46 185.12ZM44.1 184.23A6.25 6.25 0 0 0 50.35 190.48L114.61 190.48A6.25 6.25 0 0 0 120.86 184.23L120.86 107.47A6.25 6.25 0 0 0 114.61 101.22L50.35 101.22A6.25 6.25 0 0 0 44.1 107.47ZM135.14 184.23A6.25 6.25 0 0 0 141.39 190.48L205.65 190.48A6.25 6.25 0 0 0 211.9 184.23L211.9 107.47A6.25 6.25 0 0 0 205.65 101.22L141.39 101.22A6.25 6.25 0 0 0 135.14 107.47ZM49.45 58.38C48.7 69 44.9 72.8 34.28 73.55C44.9 74.31 48.7 78.11 49.45 88.73C50.21 78.11 54.01 74.31 64.63 73.55C54.01 72.8 50.21 69 49.45 58.38ZM83.37 58.38C82.61 69 78.82 72.8 68.2 73.55C78.82 74.31 82.61 78.11 83.37 88.73C84.13 78.11 87.92 74.31 98.55 73.55C87.92 72.8 84.13 69 83.37 58.38ZM117.29 58.38C116.53 69 112.74 72.8 102.12 73.55C112.74 74.31 116.53 78.11 117.29 88.73C118.05 78.11 121.84 74.31 132.46 73.55C121.84 72.8 118.05 69 117.29 58.38Z"/><path fill="#FFC857" d="M49.45 57.49C50.26 68.73 54.27 72.75 65.52 73.55C54.27 74.36 50.26 78.37 49.45 89.62C48.65 78.37 44.63 74.36 33.39 73.55C44.63 72.75 48.65 68.73 49.45 57.49ZM83.37 57.49C84.18 68.73 88.19 72.75 99.44 73.55C88.19 74.36 84.18 78.37 83.37 89.62C82.57 78.37 78.55 74.36 67.31 73.55C78.55 72.75 82.57 68.73 83.37 57.49ZM117.29 57.49C118.09 68.73 122.11 72.75 133.36 73.55C122.11 74.36 118.09 78.37 117.29 89.62C116.49 78.37 112.47 74.36 101.22 73.55C112.47 72.75 116.49 68.73 117.29 57.49Z"/><path fill="#EEECF3" d="M402.8 107.52L399.52 104.28L396.52 101.97L393.26 100.03L389.8 98.5L386.17 97.39L382.44 96.73L378.66 96.53L374.88 96.77L371.16 97.47L367.55 98.62L364.1 100.18L360.86 102.15L357.89 104.5L355.21 107.19L352.89 110.17L350.93 113.42L349.38 116.87L348.26 120.49L347.58 124.22L347.35 128L347.58 131.78L348.26 135.51L349.38 139.13L350.93 142.58L352.89 145.83L355.21 148.81L357.89 151.5L360.86 153.85L364.1 155.82L367.55 157.38L371.16 158.53L374.88 159.23L378.66 159.47L382.44 159.27L386.17 158.61L389.8 157.5L393.26 155.97L396.52 154.03L399.52 151.72L402.8 148.48L421.95 167.94L417.49 172.33L411.89 176.65L405.8 180.27L399.33 183.14L392.56 185.2L385.59 186.43L378.52 186.82L371.45 186.36L364.49 185.05L357.74 182.92L351.3 179.99L345.25 176.3L339.69 171.92L334.7 166.9L330.35 161.32L326.69 155.25L323.8 148.79L321.7 142.03L320.43 135.07L320 128L320.43 120.93L321.7 113.97L323.8 107.21L326.69 100.75L330.35 94.68L334.7 89.1L339.69 84.08L345.25 79.7L351.3 76.01L357.74 73.08L364.49 70.95L371.45 69.64L378.52 69.18L385.59 69.57L392.56 70.8L399.33 72.86L405.8 75.73L411.89 79.35L417.49 83.67L421.95 88.06ZM446.02 18.8L473.32 18.8L473.32 186.8L446.02 186.8ZM446.07 122.73L446.66 115.25L448.66 106.91L451.94 98.99L456.42 91.68L461.99 85.16L468.51 79.59L475.82 75.11L483.74 71.83L492.08 69.83L500.62 69.16L509.17 69.83L517.51 71.83L525.43 75.11L532.74 79.59L539.26 85.16L544.83 91.68L549.31 98.99L552.59 106.91L554.59 115.25L555.22 123.26L555.22 186.8L527.92 186.8L527.92 124.34L527.55 119.54L526.55 115.38L524.91 111.43L522.68 107.78L519.9 104.53L516.65 101.75L513 99.51L509.05 97.88L504.89 96.88L500.62 96.54L496.36 96.88L492.2 97.88L488.25 99.51L484.6 101.75L481.35 104.53L478.57 107.78L476.34 111.43L474.7 115.38L473.7 119.54L473.28 124.87ZM576.22 69.2L603.52 69.2L603.52 186.8L576.22 186.8ZM576.24 122.02L576.52 116.81L577.47 110.94L579.04 105.2L581.22 99.66L583.97 94.39L587.27 89.44L591.08 84.87L595.35 80.74L600.04 77.08L605.1 73.94L610.46 71.36L616.06 69.37L621.85 67.99L627.75 67.23L633.7 67.11L638.89 67.56L636.55 94.76L632.8 94.43L629.78 94.5L626.77 94.88L623.83 95.59L620.98 96.6L618.25 97.91L615.68 99.51L613.29 101.37L611.11 103.47L609.17 105.8L607.5 108.32L606.1 111L604.99 113.82L604.19 116.74L603.71 119.73L603.51 123.48ZM771.52 128A58.8 58.8 0 0 1 712.72 186.8A58.8 58.8 0 0 1 653.92 128A58.8 58.8 0 0 1 712.72 69.2A58.8 58.8 0 0 1 771.52 128ZM744.22 128A31.5 31.5 0 0 0 712.72 96.5A31.5 31.5 0 0 0 681.22 128A31.5 31.5 0 0 0 712.72 159.5A31.5 31.5 0 0 0 744.22 128ZM790.42 69.2L817.72 69.2L817.72 186.8L790.42 186.8ZM790.47 106.98L790.86 101.97L792.29 96.03L794.62 90.39L797.81 85.19L801.77 80.55L806.41 76.59L811.62 73.4L817.26 71.06L823.19 69.64L829.27 69.16L835.36 69.64L841.29 71.06L846.93 73.4L852.14 76.59L856.78 80.55L860.74 85.19L863.93 90.39L866.26 96.03L867.69 101.97L868.12 107.51L868.12 186.8L840.82 186.8L840.82 108.59L840.64 106.25L840.22 104.49L839.53 102.83L838.58 101.29L837.41 99.91L836.04 98.74L834.5 97.8L832.83 97.11L831.07 96.68L829.27 96.54L827.47 96.68L825.72 97.11L824.05 97.8L822.51 98.74L821.14 99.91L819.96 101.29L819.02 102.83L818.33 104.49L817.91 106.25L817.68 109.12ZM840.87 106.98L841.26 101.97L842.69 96.03L845.02 90.39L848.21 85.19L852.17 80.55L856.81 76.59L862.02 73.4L867.66 71.06L873.59 69.64L879.67 69.16L885.76 69.64L891.69 71.06L897.33 73.4L902.54 76.59L907.18 80.55L911.14 85.19L914.33 90.39L916.66 96.03L918.09 101.97L918.52 107.51L918.52 186.8L891.22 186.8L891.22 108.59L891.04 106.25L890.62 104.49L889.93 102.83L888.98 101.29L887.81 99.91L886.44 98.74L884.9 97.8L883.23 97.11L881.47 96.68L879.67 96.54L877.87 96.68L876.12 97.11L874.45 97.8L872.91 98.74L871.54 99.91L870.36 101.29L869.42 102.83L868.73 104.49L868.31 106.25L868.08 109.12ZM939.52 69.2L966.82 69.2L966.82 186.8L939.52 186.8ZM1076.02 69.2L1103.32 69.2L1103.32 237.2L1076.02 237.2ZM1103.32 128A58.8 58.8 0 0 1 1044.52 186.8A58.8 58.8 0 0 1 985.72 128A58.8 58.8 0 0 1 1044.52 69.2A58.8 58.8 0 0 1 1103.32 128ZM1076.02 128A31.5 31.5 0 0 0 1044.52 96.5A31.5 31.5 0 0 0 1013.02 128A31.5 31.5 0 0 0 1044.52 159.5A31.5 31.5 0 0 0 1076.02 128Z"/><path fill="#FFC857" d="M953.17 -1.15C954.49 17.22 961.05 23.79 979.42 25.1C961.05 26.41 954.49 32.97 953.17 51.35C951.86 32.97 945.3 26.41 926.92 25.1C945.3 23.79 951.86 17.22 953.17 -1.15Z"/></svg>
+        <h1 class="tagline">Visual systems,<br /><em>made tangible.</em></h1>
+        <p class="blurb">
+          Tune a live token system in the browser, compare directions, and export
+          CSS, Tailwind, shadcn/ui and DESIGN.md.
+        </p>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><span>theme.css</span><span>dark</span></div>
+        <div class="row"><span class="chip" style="background: #b7cc6a"></span>--chromiq-accent<span class="value">#b7cc6a</span></div>
+        <div class="row"><span class="chip" style="background: #161a14"></span>--chromiq-bg<span class="value">#161a14</span></div>
+        <div class="row"><span class="chip" style="background: #f1f2e8"></span>--chromiq-fg<span class="value">#f1f2e8</span></div>
+        <div class="row"><span class="chip" style="background: #7fbfb4"></span>--chromiq-success<span class="value">#7fbfb4</span></div>
+        <div class="row"><span class="chip" style="background: #d9b36a"></span>--chromiq-warning<span class="value">#d9b36a</span></div>
+        <div class="row"><span class="chip" style="background: #d9846b"></span>--chromiq-danger<span class="value">#d9846b</span></div>
+      </div>
+      <div class="hairline"></div>
+    </div>
+  </body>
+</html>

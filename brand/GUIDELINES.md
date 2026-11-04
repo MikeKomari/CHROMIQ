@@ -15,6 +15,7 @@
 | Below 32 px | `chromiq-symbol-small.svg`: one bigger sparkle, thicker frame |
 | App icon | `web/chromiq-app-icon.svg` (window on white) |
 | Website icons | `web/favicon.ico`, `favicon.svg`, `apple-touch-icon.png`, `icon-192/512.png`, `maskable-512.png`, `site.webmanifest`, `head-snippet.html` |
+| Social card | `web/social-card.html` is the source; it renders to `public/social-card.png` at 1200x630 |
 | Raster | `png/` (symbol 1024, horizontal 2400, stacked 1200, horizontal on dark) |
 
 ## 3. Clear space
@@ -45,6 +46,26 @@ Headings in Sora 600 and UI text in Plus Jakarta Sans, both under the SIL Open F
 ## 7. Don'ts
 Don't stretch, rotate or recolour the logo. Don't change the number of sparkles or their order. Don't fill the panes. Don't add shadows, glows or gradients. Don't put the full-colour logo on the product accent, on gold or on busy photos. Don't rebuild the wordmark by typing it.
 
-## 8. Notes
+## 8. The social card
+
+`public/social-card.png` is what a link to CHROMIQ shows in a chat app, a
+timeline or a search result. It is 1200x630, the size Open Graph and Twitter's
+`summary_large_image` both read at, and it is generated rather than drawn:
+
+```
+npx playwright@1.49.1 install chromium   # once
+node brand/web/render-social-card.mjs
+```
+
+Edit `brand/web/social-card.html` and re-render; do not retouch the PNG. The
+wordmark on the card is the outlined artwork from
+`chromiq-horizontal-on-dark.svg`, so it cannot drift from the brand asset and
+needs no webfont at render time.
+
+The card carries the product's real default dark tokens and nothing else. It
+states no customer, rating, usage number or domain, because CHROMIQ has none to
+state.
+
+## 9. Notes
 - The Nanashi design system reserves indigo for the studio signature. Using Nanashi Indigo and Star Gold for this product's logo was a deliberate choice. CHROMIQ's UI can keep its violet accent.
 - Browser-window icons are common, for example AWS Certificate Manager's window with a star. Search for "CHROMIQ" as a name too. Do a trademark search, plus a reverse image search, before launch.

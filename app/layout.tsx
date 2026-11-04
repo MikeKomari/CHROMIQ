@@ -28,7 +28,8 @@ export const metadata: Metadata = {
       "A browser-first design workbench for exploring, comparing, and exporting frontend visual systems.",
   },
   twitter: {
-    card: "summary",
+    // The card is 1200x630 artwork, not a square tile: "summary" would crop it.
+    card: "summary_large_image",
     images: [socialImage.url],
     title: "CHROMIQ: visual systems, made tangible",
     description:
