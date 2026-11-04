@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { clientKey, readJsonBody } from "@/lib/server/http";
+import { clientKey, isBodyTooLarge, readJsonBody } from "@/lib/server/http";
 import { rateLimit } from "@/lib/server/rate-limit-db";
 import {
   MAX_DETAIL,
@@ -38,11 +38,10 @@ export async function POST(request: NextRequest) {
   const wait = await rateLimit("telemetry", clientKey(request), 60, 60_000);
   if (wait) return new NextResponse(null, { status: 204 });
 
-  const length = Number(request.headers.get("content-length") ?? 0);
-  if (length > MAX_BODY_BYTES) return new NextResponse(null, { status: 204 });
-
-  const body = await readJsonBody(request);
-  if (typeof body !== "object" || body === null) {
+  // Measured while reading, not taken from Content-Length: that header is
+  // absent on a chunked request, and this endpoint needs no account.
+  const body = await readJsonBody(request, MAX_BODY_BYTES);
+  if (isBodyTooLarge(body) || typeof body !== "object" || body === null) {
     return new NextResponse(null, { status: 204 });
   }
 

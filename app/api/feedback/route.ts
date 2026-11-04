@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { queryOne } from "@/lib/db";
 import { databaseEnabled } from "@/lib/server/features";
 import { getSessionUser } from "@/lib/server/sessions";
-import { clientKey, jsonError, readJsonBody } from "@/lib/server/http";
+import { clientKey, isBodyTooLarge, jsonError, readJsonBody } from "@/lib/server/http";
 import { rateLimit } from "@/lib/server/rate-limit-db";
 
 export const runtime = "nodejs";
@@ -58,7 +58,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const body = await readJsonBody(request);
+  // The message is capped at MAX_MESSAGE below, so nothing legitimate comes
+  // close to this; the cap is here to stop the body being read at all.
+  const body = await readJsonBody(request, 64 * 1024);
+  if (isBodyTooLarge(body)) {
+    return jsonError(`Please keep it under ${MAX_MESSAGE} characters.`, 413);
+  }
   if (typeof body !== "object" || body === null) {
     return jsonError("Send a JSON body with a topic and a message.", 400);
   }

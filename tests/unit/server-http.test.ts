@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { clientKey, validateCredentials } from "@/lib/server/http";
+import {
+  BODY_TOO_LARGE,
+  clientKey,
+  isBodyTooLarge,
+  readJsonBody,
+  validateCredentials,
+} from "@/lib/server/http";
 
 /**
  * validateCredentials is the first thing a login or signup body meets, and
@@ -123,5 +129,127 @@ describe("clientKey", () => {
 
   it("returns a constant when the headers are blank", () => {
     expect(clientKey(request({ "x-forwarded-for": "   ", "x-real-ip": "  " }))).toBe("unknown");
+  });
+});
+
+describe("readJsonBody", () => {
+  /** A stand-in for NextRequest carrying a body as a stream, as a real
+   *  chunked request does. */
+  function streamed(text: string, chunkSize = 1024) {
+    const bytes = new TextEncoder().encode(text);
+    let at = 0;
+    let cancelled = false;
+    const stream = {
+      getReader: () => ({
+        read: async () => {
+          if (at >= bytes.length) return { done: true, value: undefined };
+          const value = bytes.subarray(at, at + chunkSize);
+          at += chunkSize;
+          return { done: false, value };
+        },
+        cancel: async () => {
+          cancelled = true;
+        },
+      }),
+    };
+    const request = {
+      body: stream,
+      json: async () => JSON.parse(text),
+    } as never;
+    return { request, wasCancelled: () => cancelled, consumed: () => at };
+  }
+
+  it("parses an ordinary body", async () => {
+    const { request } = streamed(JSON.stringify({ a: 1 }));
+    await expect(readJsonBody(request)).resolves.toEqual({ a: 1 });
+  });
+
+  it("parses a body split across many chunks", async () => {
+    const payload = { events: Array.from({ length: 50 }, (_, i) => ({ name: `e${i}` })) };
+    const { request } = streamed(JSON.stringify(payload), 16);
+    await expect(readJsonBody(request)).resolves.toEqual(payload);
+  });
+
+  it("returns null for malformed JSON rather than throwing", async () => {
+    const { request } = streamed("{not json");
+    await expect(readJsonBody(request)).resolves.toBeNull();
+  });
+
+  it("returns null for an empty body", async () => {
+    const { request } = streamed("");
+    await expect(readJsonBody(request)).resolves.toBeNull();
+  });
+
+  it("refuses a body over the cap", async () => {
+    // The size is measured while reading. Content-Length is the client's
+    // claim and is simply absent on a chunked request, so it cannot be the
+    // thing the limit rests on.
+    const { request } = streamed(JSON.stringify({ blob: "x".repeat(50_000) }));
+    await expect(readJsonBody(request, 1024)).resolves.toBe(BODY_TOO_LARGE);
+  });
+
+  it("stops reading instead of buffering the whole oversized body", async () => {
+    const body = JSON.stringify({ blob: "x".repeat(500_000) });
+    const probe = streamed(body, 1024);
+    await readJsonBody(probe.request, 4096);
+    expect(probe.wasCancelled()).toBe(true);
+    // It gave up near the cap rather than draining half a megabyte.
+    expect(probe.consumed()).toBeLessThan(10_000);
+  });
+
+  it("accepts a body exactly at the cap", async () => {
+    const text = JSON.stringify({ a: "x".repeat(100) });
+    const { request } = streamed(text);
+    const size = new TextEncoder().encode(text).length;
+    await expect(readJsonBody(request, size)).resolves.toEqual(JSON.parse(text));
+  });
+
+  it("falls back to request.json() when there is no stream", async () => {
+    const request = { body: null, json: async () => ({ ok: true }) } as never;
+    await expect(readJsonBody(request)).resolves.toEqual({ ok: true });
+  });
+
+  it("returns null when the fallback itself throws", async () => {
+    const request = {
+      body: null,
+      json: async () => {
+        throw new Error("no body");
+      },
+    } as never;
+    await expect(readJsonBody(request)).resolves.toBeNull();
+  });
+
+  it("returns null when the stream errors partway", async () => {
+    const request = {
+      body: {
+        getReader: () => ({
+          read: async () => {
+            throw new Error("connection reset");
+          },
+          cancel: async () => {},
+        }),
+      },
+      json: async () => ({}),
+    } as never;
+    await expect(readJsonBody(request)).resolves.toBeNull();
+  });
+});
+
+describe("isBodyTooLarge", () => {
+  it("recognises the sentinel", () => {
+    expect(isBodyTooLarge(BODY_TOO_LARGE)).toBe(true);
+  });
+
+  it.each([null, undefined, {}, "", 0, Symbol("other")])(
+    "is false for %s",
+    (value) => {
+      expect(isBodyTooLarge(value)).toBe(false);
+    },
+  );
+
+  it("is not an object, so a caller that only checks the type still refuses it", () => {
+    // Routes written before this existed test `typeof body !== "object"`.
+    // The sentinel has to fail that check rather than slip past it.
+    expect(typeof BODY_TOO_LARGE).not.toBe("object");
   });
 });

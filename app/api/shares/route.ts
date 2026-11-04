@@ -5,7 +5,13 @@ import { accountsEnabled } from "@/lib/server/features";
 import { getSessionUser } from "@/lib/server/sessions";
 import { rateLimit } from "@/lib/server/rate-limit-db";
 import { pruneExpiredShares, shareExpiryFrom } from "@/lib/server/shares";
-import { clientKey, jsonError, readJsonBody, tooManyRequests } from "@/lib/server/http";
+import {
+  clientKey,
+  isBodyTooLarge,
+  jsonError,
+  readJsonBody,
+  tooManyRequests,
+} from "@/lib/server/http";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,7 +49,12 @@ export async function POST(request: NextRequest) {
   );
   if (wait) return tooManyRequests(wait);
 
-  const body = await readJsonBody(request);
+  // Slightly over MAX_SHARE_BYTES: enough for the JSON wrapper around a
+  // payload that is right at the limit, and nothing like enough to matter.
+  const body = await readJsonBody(request, MAX_SHARE_BYTES + 16 * 1024);
+  if (isBodyTooLarge(body)) {
+    return jsonError("That system is too large to share as a link.", 413);
+  }
   if (typeof body !== "object" || body === null) {
     return jsonError("Send a JSON body with the token system to share.", 400);
   }

@@ -17,13 +17,83 @@ export function clientKey(request: NextRequest) {
   return forwarded || request.headers.get("x-real-ip")?.trim() || "unknown";
 }
 
-/** Parses a JSON body, returning null when it is absent or malformed. */
-export async function readJsonBody(request: NextRequest): Promise<unknown> {
+/**
+ * What a body over the cap reads as. A distinct value, not null, so a route
+ * can answer 413 rather than "that JSON was malformed" -- but it is not an
+ * object either, so a caller that only checks `typeof body === "object"`
+ * still rejects it safely without being updated.
+ */
+export const BODY_TOO_LARGE = Symbol("body-too-large");
+
+/** Nothing this app accepts as JSON is anywhere near a megabyte. */
+export const DEFAULT_MAX_BODY_BYTES = 1024 * 1024;
+
+/**
+ * Parses a JSON body, returning null when it is absent or malformed and
+ * BODY_TOO_LARGE when it runs past `maxBytes`.
+ *
+ * The size is measured while reading rather than taken from Content-Length,
+ * because that header is the client's claim and is simply absent on a chunked
+ * request. Routes used to check it and then call `request.json()`, which
+ * meant a `Transfer-Encoding: chunked` POST with no length header was parsed
+ * in full however large it was -- 3 MB went through /api/telemetry, which is
+ * unauthenticated, before anything looked at the content. Measured, not
+ * theorised.
+ *
+ * Reading through the stream also means an oversized body is abandoned partway
+ * instead of being buffered first and rejected afterwards.
+ */
+export async function readJsonBody(
+  request: NextRequest,
+  maxBytes: number = DEFAULT_MAX_BODY_BYTES,
+): Promise<unknown> {
+  const stream = request.body;
+  // No stream at all: fall back to the simple path, which handles an empty or
+  // already-buffered body.
+  if (!stream) {
+    try {
+      return await request.json();
+    } catch {
+      return null;
+    }
+  }
+
+  const reader = stream.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
   try {
-    return await request.json();
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!value) continue;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        // Stop pulling: the sender does not get to keep spending our memory.
+        await reader.cancel().catch(() => {});
+        return BODY_TOO_LARGE;
+      }
+      chunks.push(value);
+    }
   } catch {
     return null;
   }
+
+  try {
+    const joined = new Uint8Array(total);
+    let at = 0;
+    for (const chunk of chunks) {
+      joined.set(chunk, at);
+      at += chunk.byteLength;
+    }
+    return JSON.parse(new TextDecoder().decode(joined));
+  } catch {
+    return null;
+  }
+}
+
+/** True when a body was refused for its size, so the route can say 413. */
+export function isBodyTooLarge(body: unknown): boolean {
+  return body === BODY_TOO_LARGE;
 }
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
