@@ -90,6 +90,19 @@ it. `tests/integration/capture-ssrf.test.ts` holds that to account against a
 real Chromium; two redirect bugs in this code passed review and were caught
 there.
 
+One gap is left open on purpose, and it is the reason this is off by
+default. The inspector and proxy resolve a host, check the address, and then
+connect to that pinned address, so a name cannot answer publicly for the
+check and privately for the connection. A browser resolves names itself and
+cannot be pinned the same way, so a DNS record with a very short TTL could in
+principle answer one way for the check and another for the connection a
+moment later. The window is small — the check runs immediately before each
+request rather than once per capture — but it is real. Closing it means
+egress filtering at the network or a resolving proxy in front of the browser,
+neither of which belongs in the app. If that risk is not acceptable for your
+deployment, leave `CHROMIQ_CAPTURE` unset and use the inspector, which is
+pinned.
+
 ## Supported browsers
 
 CHROMIQ targets the current and previous versions of Chrome, Edge, Firefox and

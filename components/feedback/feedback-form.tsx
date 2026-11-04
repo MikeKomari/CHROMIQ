@@ -13,6 +13,7 @@ const TOPICS: { value: Topic; label: string; hint: string }[] = [
 ];
 
 const MAX_MESSAGE = 4000;
+const MIN_MESSAGE = 4;
 
 /**
  * The in-product report form (CHROMIQ-1007).
@@ -32,6 +33,9 @@ export function FeedbackForm({ contactEmail }: { contactEmail: string }) {
   const [contact, setContact] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
+  /** True when the report could not be sent, as opposed to not being ready to
+   *  send. Only the first case is worth offering an email fallback for. */
+  const [sendFailed, setSendFailed] = useState(false);
 
   // From the query string on mount. Read in an effect so the server-rendered
   // markup and the first client render agree.
@@ -50,8 +54,18 @@ export function FeedbackForm({ contactEmail }: { contactEmail: string }) {
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (status === "sending") return;
+    // The button stays focusable while the form is incomplete (see below), so
+    // the guard lives here rather than in the `disabled` attribute.
+    if (message.trim().length < MIN_MESSAGE) {
+      setError("Please say a little about what happened before sending.");
+      setSendFailed(false);
+      setStatus("error");
+      document.getElementById(`${uid}-message`)?.focus();
+      return;
+    }
     setStatus("sending");
     setError(null);
+    setSendFailed(false);
     try {
       const response = await fetch("/api/feedback", {
         method: "POST",
@@ -64,9 +78,11 @@ export function FeedbackForm({ contactEmail }: { contactEmail: string }) {
       }
       const payload = (await response.json().catch(() => null)) as { error?: string } | null;
       setError(payload?.error ?? "The report could not be sent.");
+      setSendFailed(true);
       setStatus("error");
     } catch {
       setError("Could not reach the server. Check your connection and try again.");
+      setSendFailed(true);
       setStatus("error");
     }
   };
@@ -164,16 +180,30 @@ export function FeedbackForm({ contactEmail }: { contactEmail: string }) {
 
       {error && (
         <div className="error-message" role="alert">
-          {error}{" "}
-          <a href={`mailto:${contactEmail}`}>Email it instead</a>.
+          {error}
+          {/* Only when the report could not be sent. Offering an email
+              fallback because someone left the message blank is noise. */}
+          {sendFailed && (
+            <>
+              {" "}
+              <a href={`mailto:${contactEmail}`}>Email it instead</a>.
+            </>
+          )}
         </div>
       )}
 
+      {/*
+        aria-disabled, not disabled. A `disabled` button is removed from the
+        tab order, so a keyboard or screen-reader user tabs straight past it
+        and never learns the form has a submit at all, let alone why it will
+        not go yet. Setting both, as this did, is contradictory: the native
+        attribute wins and the ARIA one says nothing to anybody. The form
+        checks the message itself in `submit` and says what is missing.
+      */}
       <button
         type="submit"
         className="primary-button"
-        aria-disabled={status === "sending" || message.trim().length < 4}
-        disabled={message.trim().length < 4}
+        aria-disabled={status === "sending" || message.trim().length < MIN_MESSAGE}
       >
         {status === "sending" ? (
           <Loader2 size={15} className="spin" aria-hidden="true" />

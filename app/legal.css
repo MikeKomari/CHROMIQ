@@ -156,7 +156,9 @@
   color: inherit;
   border-color: var(--line);
 }
-.legal .feedback-form .primary-button:disabled {
+/* aria-disabled rather than disabled, so the control stays reachable; it
+   still has to LOOK unavailable. */
+.legal .feedback-form .primary-button[aria-disabled="true"] {
   opacity: 0.5;
   cursor: not-allowed;
 }

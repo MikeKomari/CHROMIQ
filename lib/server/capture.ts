@@ -24,6 +24,27 @@ import { isBlockedHost } from "@/lib/url-safety";
  * a private address is aborted, and the capture reports what it refused rather
  * than silently rendering a page with holes in it.
  *
+ * ## What this does not protect against
+ *
+ * `safeFetch` resolves a host, checks the address, and then connects to that
+ * pinned address, so a name cannot resolve to something public for the check
+ * and something private for the connection. A browser cannot be driven that
+ * way: it resolves names itself, and Chromium's resolver is not ours to pin
+ * per request.
+ *
+ * So a DNS entry with a very short TTL that answers publicly when `allow()`
+ * asks and privately a moment later, when the browser connects for that same
+ * request, would get through. The window is small -- the gate runs per
+ * request, immediately before each fetch, rather than once per capture -- but
+ * it is real and it is not closed here.
+ *
+ * This is why capture is off by default and why the other outbound routes
+ * were not moved onto it. A deployment that cannot accept that risk should
+ * leave `CHROMIQ_CAPTURE` unset and keep the inspector, which is pinned.
+ * Closing it properly means egress filtering at the network, or launching the
+ * browser behind a proxy that does the resolving; neither belongs in this
+ * module.
+ *
  * ## Why Playwright is not a dependency
  *
  * It needs a browser binary, which a serverless host does not have, and adding
