@@ -12,6 +12,7 @@ import "./ui-controls.css";
 import "./shell.css";
 import { contrastBootScript, uiScaleBootScript } from "@/lib/contrast-boot";
 import { siteName, siteUrl, socialImage } from "@/lib/site";
+import { TelemetryVitals } from "@/components/telemetry-vitals";
 
 export const metadata: Metadata = {
   metadataBase: siteUrl,
@@ -57,6 +58,7 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
         {children}
+        <TelemetryVitals />
       </body>
     </html>
   );

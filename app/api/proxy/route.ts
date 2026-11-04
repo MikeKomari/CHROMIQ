@@ -3,6 +3,7 @@ import { SafeFetchError, safeFetch } from "@/lib/safe-fetch";
 import { acquireSlot } from "@/lib/rate-limit";
 import { clientKey } from "@/lib/server/http";
 import { rateLimit } from "@/lib/server/rate-limit-db";
+import { recordFailure } from "@/lib/server/telemetry";
 import {
   extractTitle,
   looksLikeSpa,
@@ -63,17 +64,21 @@ export async function GET(request: NextRequest) {
   // rather than one per warm instance. Degrades to per-instance counting when
   // the limiter is unreachable.
   const wait = await rateLimit("proxy", clientKey(request), RATE_LIMIT_PER_MIN);
-  if (wait)
+  if (wait) {
+    recordFailure("proxy", "rate-limited");
     return NextResponse.json(
       { error: "Too many previews in a short time. Please wait a moment and try again." },
       { status: 429, headers: { "Retry-After": String(wait) } },
     );
+  }
   const release = acquireSlot(MAX_IN_FLIGHT);
-  if (!release)
+  if (!release) {
+    recordFailure("proxy", "busy");
     return NextResponse.json(
       { error: "The preview service is busy. Please try again in a few seconds." },
       { status: 429, headers: { "Retry-After": "5" } },
     );
+  }
   try {
     const response = await safeFetch(target, {
       timeoutMs: TIMEOUT_MS,
@@ -87,11 +92,13 @@ export async function GET(request: NextRequest) {
     target = response.finalUrl;
     if (response.status < 200 || response.status >= 300) {
       response.close();
+      recordFailure("proxy", "upstream-status", `HTTP ${response.status}`);
       throw new ProxyError(`The page responded with HTTP ${response.status}.`, 502);
     }
     const contentType = String(response.headers["content-type"] || "");
     if (!/text\/html|application\/xhtml\+xml/i.test(contentType)) {
       response.close();
+      recordFailure("proxy", "not-html", contentType.split(";")[0]);
       throw new ProxyError("The URL did not return an HTML page.", 415);
     }
     const { bytes, truncated } = await response.readBody();
@@ -119,6 +126,8 @@ export async function GET(request: NextRequest) {
     if (error instanceof ProxyError)
       return NextResponse.json({ error: error.message }, { status: error.status });
     if (error instanceof SafeFetchError) {
+      // The code is already the reason; it is the whole point of the class.
+      recordFailure("proxy", error.code);
       if (error.code === "blocked")
         return NextResponse.json(
           { error: "Only public HTTP(S) URLs can be previewed." },
@@ -137,6 +146,7 @@ export async function GET(request: NextRequest) {
           { status: 504 },
         );
     }
+    if (!(error instanceof SafeFetchError)) recordFailure("proxy", "fetch-failed");
     return NextResponse.json(
       { error: "The page could not be fetched from the server." },
       { status: 502 },

@@ -156,10 +156,14 @@ export default function PrivacyPage() {
         <h2>What our servers log</h2>
         <p>
           The application code does not write its own logs of what you fetch. To
-          keep the fetch features from being abused, it keeps a short-lived
-          counter per IP address in server memory (20 previews and 30
-          inspections per minute). That counter is not written to a database and
-          is lost when the server instance restarts.
+          keep the fetch features from being abused, it counts requests per IP
+          address (20 previews and 30 inspections per minute). On deployments
+          with a database that counter is a row there, so the limit holds across
+          server instances rather than per instance; it records the address, the
+          limit it belongs to and the count, nothing about what was requested,
+          and rows are deleted once their minute has passed. Without a database
+          the count is held in server memory and lost when the instance
+          restarts.
         </p>
         <p>
           CHROMIQ is hosted on Vercel. Like any host, it keeps standard request
@@ -167,14 +171,54 @@ export default function PrivacyPage() {
           string requested (which is where an inspected address appears), and
           the response status. Retention is set by the host, not by us.
         </p>
+        <p>
+          When a fetch fails, CHROMIQ records the reason — such as a timeout, a
+          page that was not HTML, or a blocked address — in its own database.
+          The address itself is not recorded there. See{" "}
+          <em>Analytics and trackers</em> below for exactly what those records
+          contain.
+        </p>
       </section>
 
       <section>
         <h2>Analytics and trackers</h2>
         <p>
-          CHROMIQ currently uses no analytics, advertising, or tracking
-          services, and the app itself loads no third-party scripts. If that changes, this page
-          will be updated first.
+          CHROMIQ uses no advertising or tracking services, and the app loads no
+          third-party scripts. There is no analytics vendor: nothing about your
+          use of CHROMIQ is sent to another company.
+        </p>
+        <p>
+          It does keep a small amount of its own diagnostic data, in the same
+          database as the rest of the app, so that breakages are visible to the
+          person maintaining it. Each record holds:
+        </p>
+        <ul>
+          <li>
+            the time, and which deployment of CHROMIQ it came from;
+          </li>
+          <li>
+            whether it was an error, a failed fetch, a page-speed measurement,
+            or a feature being used, and a short name for it — for example{" "}
+            <code>proxy</code> with the reason <code>timeout</code>, or{" "}
+            <code>LCP</code> with a number of milliseconds;
+          </li>
+          <li>
+            for an error, the error message and the reference Next.js generates
+            for it, so it can be matched to a server log entry.
+          </li>
+        </ul>
+        <p>
+          Each record deliberately does <strong>not</strong> hold your IP
+          address, your account, a session or device identifier, a cookie, your
+          user agent, or any URL you asked CHROMIQ to inspect or restyle. There
+          is nothing in it that points back to you, and two visits from the same
+          browser cannot be told apart. That is also its limitation: it can show
+          that previews are timing out, but not which site caused it.
+        </p>
+        <p>
+          Page-speed measurements are Core Web Vitals (LCP, CLS, INP and
+          similar), reported by your browser about CHROMIQ&apos;s own pages
+          only.
         </p>
       </section>
 
@@ -192,6 +236,12 @@ export default function PrivacyPage() {
 
       <section>
         <h2>Deleting your data</h2>
+        <p>
+          The diagnostic records described above are not listed here, because
+          they contain nothing that identifies you. There is no way for us to
+          find &ldquo;your&rdquo; records in them, and no way for you to prove
+          which are yours — which is the same thing said from the other side.
+        </p>
         <ul>
           <li>
             <strong>Local data:</strong> clear this site&apos;s data in your

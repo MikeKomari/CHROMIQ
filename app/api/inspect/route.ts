@@ -3,6 +3,7 @@ import { SafeFetchError, safeFetch } from "@/lib/safe-fetch";
 import { acquireSlot } from "@/lib/rate-limit";
 import { clientKey } from "@/lib/server/http";
 import { rateLimit } from "@/lib/server/rate-limit-db";
+import { recordFailure } from "@/lib/server/telemetry";
 import {
   collectInlineStyles,
   extractDesign,
@@ -97,18 +98,22 @@ export async function GET(request: NextRequest) {
   // Shared across instances; see the proxy route for why the per-process
   // counters were not enough.
   const wait = await rateLimit("inspect", clientKey(request), 30);
-  if (wait)
+  if (wait) {
+    recordFailure("inspect", "rate-limited");
     return NextResponse.json(
       { error: "Too many requests. Please wait a moment and try again." },
       { status: 429, headers: { "Retry-After": String(wait) } },
     );
+  }
 
   const release = acquireSlot(MAX_IN_FLIGHT);
-  if (!release)
+  if (!release) {
+    recordFailure("inspect", "busy");
     return NextResponse.json(
       { error: "The inspector is busy right now. Please try again in a few seconds." },
       { status: 503, headers: { "Retry-After": "5" } },
     );
+  }
   const deadline = Date.now() + REQUEST_DEADLINE_MS;
 
   try {
@@ -120,6 +125,7 @@ export async function GET(request: NextRequest) {
     });
     if (response.status < 200 || response.status >= 300) {
       response.close();
+      recordFailure("inspect", "upstream-status", `HTTP ${response.status}`);
       return NextResponse.json(
         { error: `The page responded with HTTP ${response.status}.` },
         { status: 502 },
@@ -128,6 +134,7 @@ export async function GET(request: NextRequest) {
     const contentType = String(response.headers["content-type"] || "");
     if (!contentType.includes("text/html")) {
       response.close();
+      recordFailure("inspect", "not-html", contentType.split(";")[0]);
       return NextResponse.json(
         { error: "The URL did not return an HTML page." },
         { status: 415 },
@@ -188,6 +195,12 @@ export async function GET(request: NextRequest) {
       clientRendered: looksClientRendered(html),
     });
   } catch (error) {
+    // The reason is recorded, never the address. See the telemetry migration
+    // for why that trade was made.
+    recordFailure(
+      "inspect",
+      error instanceof SafeFetchError ? error.code : "fetch-failed",
+    );
     if (error instanceof SafeFetchError && error.code === "blocked")
       return NextResponse.json(
         { error: "Only public HTTP(S) URLs can be inspected." },

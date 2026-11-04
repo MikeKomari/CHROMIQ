@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import { RefreshCcw, TriangleAlert } from "lucide-react";
+import { reportBoundaryError } from "@/lib/telemetry";
 
 // global-error replaces the root layout, so globals.css is not loaded here.
 // The tokens below mirror the Comfort values in DESIGN.md.
@@ -64,11 +66,18 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 `;
 
 export default function GlobalError({
+  error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  // This boundary replaces the root layout, so it is the only place a failure
+  // during boot is observable at all.
+  useEffect(() => {
+    reportBoundaryError("root-boundary", error);
+  }, [error]);
+
   return (
     <html lang="en">
       <head>
