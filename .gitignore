@@ -11,6 +11,9 @@
 # scratch bundle used when driving lib/server/capture.ts outside Next
 /.capture-build/
 
+# git bundles produced for hand-off; never part of the tree
+*.bundle
+
 # environment (never commit real keys)
 .env
 .env.*
