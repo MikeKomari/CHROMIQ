@@ -4,6 +4,8 @@ import { Check, ChevronDown, CircleHelp, Link2, Search, Settings2, UserRound, Us
 import { motion } from "motion/react";
 import { ChromiqMark, ChromiqWordmark } from "@/components/brand/chromiq-logo";
 import type { AccountStatus } from "@/hooks/use-account";
+import { SyncStatus } from "@/components/workspace/shell/sync-status";
+import type { SyncState } from "@/hooks/use-cloud-sync";
 
 export function TopBar({
   projectName,
@@ -18,6 +20,13 @@ export function TopBar({
   openAccount,
   accountStatus,
   accountEmail,
+  readOnly,
+  syncState,
+  syncError,
+  syncedAt,
+  linkProject,
+  retrySync,
+  openConflict,
 }: {
   projectName: string;
   saved: boolean;
@@ -31,6 +40,13 @@ export function TopBar({
   openAccount: () => void;
   accountStatus: AccountStatus;
   accountEmail?: string;
+  readOnly: boolean;
+  syncState: SyncState;
+  syncError: string | null;
+  syncedAt: string | null;
+  linkProject: () => void;
+  retrySync: () => void;
+  openConflict: () => void;
 }) {
   // Accounts are optional. Hide the control until the server confirms they exist,
   // so a deployment without a database never shows a button that cannot work.
@@ -89,6 +105,15 @@ export function TopBar({
           {shared ? <Check size={17} /> : <Link2 size={17} />}
         </button>
         <div className="divider" />
+        <SyncStatus
+          state={syncState}
+          error={syncError}
+          syncedAt={syncedAt}
+          readOnly={readOnly}
+          linkProject={linkProject}
+          retry={retrySync}
+          openConflict={openConflict}
+        />
         <button
           type="button"
           className="save-state"

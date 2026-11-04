@@ -837,3 +837,161 @@ button.panel-row:hover,
 .account-danger .account-actions .danger-button {
   margin-top: 0;
 }
+
+/* ---------------------------------------------------------------------------
+   Cloud sync (CHROMIQ-802)
+
+   Deliberately quiet next to the local save state: a system that lives in this
+   browser is the normal case, and an account is optional. Only the two states
+   that need the user -- a failed save and a conflict -- carry colour.
+   --------------------------------------------------------------------------- */
+.sync-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border-radius: var(--radius-control);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: var(--fs-xs);
+  transition:
+    color 0.2s,
+    border-color 0.2s,
+    background 0.2s;
+}
+button.sync-state:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--line);
+  background: var(--panel);
+}
+button.sync-state:disabled {
+  opacity: 0.55;
+}
+.sync-state.is-synced {
+  color: var(--cyan);
+}
+.sync-state.is-error {
+  color: var(--coral);
+  border-color: color-mix(in srgb, var(--coral) 40%, transparent);
+  background: var(--danger-bg);
+}
+.sync-state.is-conflict {
+  color: var(--select);
+  border-color: color-mix(in srgb, var(--select) 40%, transparent);
+  background: color-mix(in srgb, var(--select) 12%, var(--panel));
+}
+/* The sync label is the first thing to go when the bar runs out of room; the
+   icon and its accessible name carry the state on their own. */
+@media (max-width: 1100px) {
+  .sync-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+/* Cloud projects in the project modal. */
+.project-cloud {
+  margin-top: 26px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.project-cloud-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.project-cloud-head h3 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  font-size: var(--fs-md);
+  font-weight: 500;
+  color: var(--text);
+}
+.project-cloud-note {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+}
+.mini-text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--muted);
+  font-size: var(--fs-xs);
+  transition:
+    color 0.2s,
+    border-color 0.2s,
+    background 0.2s;
+}
+.mini-text-button:hover {
+  color: var(--text);
+  border-color: var(--line-strong);
+  background: var(--panel);
+}
+.project-item-mark.is-cloud {
+  background: var(--cyan);
+}
+
+/* The conflict dialog. Two options, side by side, neither one preselected. */
+.sync-conflict .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--select);
+}
+.conflict-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 22px;
+}
+@media (max-width: 640px) {
+  .conflict-options {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.conflict-option {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-popover);
+  background: var(--panel);
+}
+.conflict-option h3 {
+  margin: 0;
+  font-size: var(--fs-md);
+  font-weight: 500;
+}
+.conflict-option p {
+  margin: 0;
+  flex: 1;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+}
+.conflict-option button {
+  justify-content: center;
+}
+.conflict-note {
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+}

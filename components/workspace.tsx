@@ -1,12 +1,13 @@
 "use client";
 
 import { Lock } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { MotionConfig } from "motion/react";
 import { starters } from "@/data/workspace";
 import { starterAccents } from "@/lib/colors";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useAccount } from "@/hooks/use-account";
+import { useCloudSync } from "@/hooks/use-cloud-sync";
 import { CanvasArea } from "@/components/workspace/canvas-area";
 import { ExportModal } from "@/components/workspace/export-modal";
 import { TopBar } from "@/components/workspace/shell/top-bar";
@@ -32,6 +33,7 @@ import {
 } from "@/components/workspace/restyle/restyle-view";
 import { SettingsModal } from "@/components/workspace/settings-modal";
 import { AccountModal } from "@/components/workspace/account-modal";
+import { SyncConflictModal } from "@/components/workspace/sync-conflict-modal";
 
 export function Workspace() {
   const workspace = useWorkspace();
@@ -46,6 +48,7 @@ export function Workspace() {
   const [showVersions, setShowVersions] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showAccount, setShowAccount] = useState(false);
+  const [showConflict, setShowConflict] = useState(false);
   const [shared, setShared] = useState(false);
   const [restyleRequest, setRestyleRequest] = useState<RestyleRequest | null>(null);
   const consumeRestyleRequest = useCallback(() => setRestyleRequest(null), []);
@@ -94,6 +97,41 @@ export function Workspace() {
     deriveDark,
     readOnly,
   } = workspace;
+
+  // Cloud sync (CHROMIQ-802). The workbench runs from localStorage whatever
+  // this does: the hook reports "off" with no account, and every failure it
+  // reports is a sync failure, never a lost local edit.
+  const syncableProject = useMemo(
+    () => ({
+      id: workspace.projectId,
+      name: workspace.projectName,
+      tokens,
+      mode,
+      starter: activeStarter,
+      snapshots: workspace.snapshots,
+    }),
+    [
+      workspace.projectId,
+      workspace.projectName,
+      tokens,
+      mode,
+      activeStarter,
+      workspace.snapshots,
+    ],
+  );
+  const cloud = useCloudSync({
+    enabled: account.status === "signed-in",
+    readOnly,
+    project: syncableProject,
+    onReplaceProject: workspace.loadProject,
+  });
+
+  // A conflict is not a toast: it waits in the top bar until it is dealt with,
+  // and opens itself once so it cannot be missed the first time.
+  useEffect(() => {
+    if (cloud.conflict) setShowConflict(true);
+  }, [cloud.conflict]);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const target = params.get("restyle");
@@ -117,7 +155,11 @@ export function Workspace() {
         return;
       }
       if (event.key === "Escape") {
-        if (showCommand) setShowCommand(false);
+        // The conflict dialog sits first: it is the one modal that is
+        // reporting a problem rather than offering an action, and it stays
+        // reachable from the top bar after Escape closes it.
+        if (showConflict) setShowConflict(false);
+        else if (showCommand) setShowCommand(false);
         else if (showExport) setShowExport(false);
         else if (showProjects) setShowProjects(false);
         else if (showSnapshots) setShowSnapshots(false);
@@ -134,7 +176,7 @@ export function Workspace() {
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [showCommand, showExport, showProjects, showSnapshots, showVersions, showImport, showInspect, showSettings, showAccount, showHelp, layout.narrowPanel, layout.panelOverlay, layout.dismissPanelOverlay, layout.narrowInspector, layout.inspectorDrawer, layout.closeInspectorDrawer]);
+  }, [showConflict, showCommand, showExport, showProjects, showSnapshots, showVersions, showImport, showInspect, showSettings, showAccount, showHelp, layout.narrowPanel, layout.panelOverlay, layout.dismissPanelOverlay, layout.narrowInspector, layout.inspectorDrawer, layout.closeInspectorDrawer]);
   const selectStarter = (starter: (typeof starters)[number]) => {
     if (readOnly) return;
     updateTokens(starterAccents(starter));
@@ -189,6 +231,13 @@ export function Workspace() {
           openAccount={() => setShowAccount(true)}
           accountStatus={account.status}
           accountEmail={account.user?.email}
+          readOnly={readOnly}
+          syncState={cloud.state}
+          syncError={cloud.error}
+          syncedAt={cloud.syncedAt}
+          linkProject={() => void cloud.linkProject()}
+          retrySync={cloud.retry}
+          openConflict={() => setShowConflict(true)}
         />
         {readOnly && (
           <div className="readonly-banner">
@@ -336,6 +385,18 @@ export function Workspace() {
           loadProject={workspace.loadProject}
           deleteProject={workspace.deleteProject}
           saveProject={workspace.saveProject}
+          cloud={
+            account.status === "signed-in"
+              ? {
+                  projects: cloud.remote,
+                  loading: cloud.loadingRemote,
+                  linked: cloud.linked,
+                  open: cloud.openRemote,
+                  remove: cloud.deleteRemote,
+                  link: () => void cloud.linkProject(),
+                }
+              : undefined
+          }
           close={() => setShowProjects(false)}
         />
       )}
@@ -390,6 +451,20 @@ export function Workspace() {
       )}
       {showAccount && account.status !== "unavailable" && (
         <AccountModal account={account} close={() => setShowAccount(false)} />
+      )}
+      {showConflict && cloud.conflict && (
+        <SyncConflictModal
+          conflict={cloud.conflict}
+          keepMine={() => {
+            cloud.resolveKeepMine();
+            setShowConflict(false);
+          }}
+          useTheirs={() => {
+            cloud.resolveUseTheirs();
+            setShowConflict(false);
+          }}
+          close={() => setShowConflict(false)}
+        />
       )}
       {showCommand && (
         <CommandPalette

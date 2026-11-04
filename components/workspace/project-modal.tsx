@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { FolderOpen, Plus, Trash2, X } from "lucide-react";
+import { Cloud, CloudUpload, FolderOpen, Loader2, Plus, Trash2, X } from "lucide-react";
 import type { Project } from "@/types/workspace";
+import type { SyncedProject } from "@/lib/sync";
 
 export function ProjectModal({
   projectName,
@@ -10,6 +11,7 @@ export function ProjectModal({
   loadProject,
   deleteProject,
   saveProject,
+  cloud,
   close,
 }: {
   projectName: string;
@@ -19,6 +21,15 @@ export function ProjectModal({
   loadProject: (project: Project) => void;
   deleteProject: (id: string) => void;
   saveProject: (name?: string) => void;
+  /** Absent when accounts are off on this deployment, or nobody is signed in. */
+  cloud?: {
+    projects: SyncedProject[];
+    loading: boolean;
+    linked: boolean;
+    open: (project: SyncedProject) => void;
+    remove: (project: SyncedProject) => Promise<boolean>;
+    link: () => void;
+  };
   close: () => void;
 }) {
   const [draft, setDraft] = useState(projectName);
@@ -116,6 +127,63 @@ export function ProjectModal({
         >
           <Plus size={15} /> New project
         </button>
+        {cloud && (
+          <section className="project-cloud" aria-labelledby="project-cloud-heading">
+            <div className="project-cloud-head">
+              <h3 id="project-cloud-heading">
+                <Cloud size={14} /> In your account
+              </h3>
+              {!cloud.linked && (
+                <button type="button" className="mini-text-button" onClick={cloud.link}>
+                  <CloudUpload size={14} /> Sync this one
+                </button>
+              )}
+            </div>
+            <p className="project-cloud-note">
+              These open in any browser you sign in to. Projects above this line
+              are saved in this browser only.
+            </p>
+            {cloud.loading ? (
+              <p className="empty-state">
+                <Loader2 size={14} className="spin" /> Loading your projects
+              </p>
+            ) : cloud.projects.length ? (
+              <div className="project-list">
+                {cloud.projects.map((project) => (
+                  <div className="project-item" key={project.id}>
+                    <button
+                      onClick={() => {
+                        cloud.open(project);
+                        close();
+                      }}
+                    >
+                      <span className="project-item-mark is-cloud" />
+                      <span>
+                        <strong>{project.name}</strong>
+                        <small>
+                          Synced {new Date(project.updated_at).toLocaleString()}
+                        </small>
+                      </span>
+                    </button>
+                    <button
+                      className="icon-button"
+                      onClick={() => void cloud.remove(project)}
+                      aria-label={`Remove ${project.name} from your account`}
+                      title="Remove from your account. The copy in this browser stays."
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="empty-state">
+                Nothing synced yet. Use &ldquo;Sync this one&rdquo; to put the
+                current system in your account.
+              </p>
+            )}
+          </section>
+        )}
       </section>
     </div>
   );
