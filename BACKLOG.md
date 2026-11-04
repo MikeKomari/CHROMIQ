@@ -524,7 +524,8 @@ Product backlog for the CHROMIQ visual design workbench. Tickets use a Jira-like
 ### CHROMIQ-802 — Cloud project storage
 
 - **Priority:** P0
-- **Status:** IN PROGRESS
+- **Status:** DONE
+- **Closed:** the API enforced ownership and optimistic concurrency already, but nothing in the UI called it. Sync is now opt-in per project, autosaves after that, shows a retryable failure in the top bar, and stops on a rejected revision with a dialog that does not pick a winner. Verified against a real Postgres across two browser profiles.
 - **User story:** As a user, I want to access my systems from multiple browsers.
 - **Scope:** Auth, database, project API, autosave, conflict handling.
 - **Acceptance criteria:**
@@ -616,7 +617,8 @@ Product backlog for the CHROMIQ visual design workbench. Tickets use a Jira-like
 ### CHROMIQ-805 — Short read-only share links
 
 - **Priority:** P0
-- **Status:** IN PROGRESS
+- **Status:** DONE
+- **Closed:** short slugs, legacy `?share=` links still resolve, no account needed, and the share snapshots the system.
 - **User story:** As a designer, I want a share link short enough to paste into a chat message.
 - **Reason:** CHROMIQ-803 base64-encodes the whole token system into the query string. Large systems produce links that exceed browser and CDN URL limits.
 - **Scope:** `shares` table, `POST /api/shares`, `GET /api/shares/[slug]`, client resolution of `?s=<slug>`, and a fallback that still reads legacy `?share=` links.
@@ -631,7 +633,8 @@ Product backlog for the CHROMIQ visual design workbench. Tickets use a Jira-like
 ### CHROMIQ-1001 — Continuous integration
 
 - **Priority:** P0
-- **Status:** IN PROGRESS
+- **Status:** DONE
+- **Closed:** CI runs lint, type-check, tests and build on pull requests and on main, and the tag deploy now waits on the same workflow rather than deploying straight from the checkout. Unit tests went from 472 to 843, covering the failure paths of the pure modules in `lib/` that had none.
 - **Reason:** `deploy.yml` runs only on version tags and never builds before deploying, so a broken build can ship.
 - **Acceptance criteria:**
   - Lint, type-check, unit tests, and build run on every pull request and on pushes to main.
@@ -641,7 +644,8 @@ Product backlog for the CHROMIQ visual design workbench. Tickets use a Jira-like
 ### CHROMIQ-1002 — Shared rate limiting
 
 - **Priority:** P0
-- **Status:** IN PROGRESS
+- **Status:** DONE
+- **Closed:** `/api/proxy` and `/api/inspect` were the two routes still on per-process counters, which is what the ticket was written about. Both now use the Postgres-backed window and fall back to in-process counting when the limiter is unreachable. `rate_limits` is also pruned; nothing was deleting closed windows.
 - **Reason:** `lib/rate-limit.ts` counts per process, so on serverless each warm instance keeps its own quota and the proxy is effectively unthrottled.
 - **Acceptance criteria:**
   - Limits are enforced across instances.
@@ -650,7 +654,8 @@ Product backlog for the CHROMIQ visual design workbench. Tickets use a Jira-like
 ### CHROMIQ-1003 — Search, social, and install metadata
 
 - **Priority:** P0
-- **Status:** IN PROGRESS
+- **Status:** DONE
+- **Closed:** the last open criterion was the social card. `public/social-card.png` is 1200x630, generated from `brand/web/social-card.html`, and Twitter is `summary_large_image`.
 - **Acceptance criteria:**
   - `metadataBase`, canonical URLs, Open Graph, and Twitter cards are set.
   - `robots` and `sitemap` cover the real public routes and exclude `/api/`.
@@ -710,7 +715,8 @@ without needing a domain.
 ### CHROMIQ-1005 — Observability
 
 - **Priority:** P1
-- **Status:** BACKLOG
+- **Status:** DONE
+- **Closed:** diagnostics live in CHROMIQ's own database rather than with a vendor, which is why the privacy policy names no analytics company. Both error boundaries report with Next's digest, the proxy and inspector record why they gave up, Core Web Vitals come from real sessions, and a record holds no address, account, session, cookie, user agent or URL. The cost of leaving the URL out is stated in the migration: this shows which failure modes dominate, not which site caused them.
 - **User story:** As the maintainer, I want to know when CHROMIQ breaks for real users, and which features they actually use.
 - **Reason:** Nothing is instrumented today. After launch there is no way to see which exports are used, what share of restyle loads fail, or which sites break the proxy.
 - **Scope:** Error monitoring for client and server, privacy-respecting product analytics, and Web Vitals field reporting.
@@ -723,7 +729,9 @@ without needing a domain.
 ### CHROMIQ-1006 — Browser and device matrix
 
 - **Priority:** P1
-- **Status:** BACKLOG
+- **Status:** IN PROGRESS
+- **Done:** `scripts/verify-browsers.mjs` runs seven checks across every installed engine and four viewports; 28 of 28 pass on Chromium 141. The supported set is in the README with a table separating what is targeted from what is verified. Bookmarklet behaviour under four real CSP shapes is measured and written up, including the two cases where it cannot work. An accessibility defect found by the emulated phone profiles is fixed: the canvas is `inert` while an overlay covers it.
+- **Still open:** current Safari and Firefox, and a real handset. Their Playwright builds download from `playwright.download.prss.microsoft.com`, which the environment the checks ran in refuses; an emulated profile is not a device. Run the command in the README on a machine that can reach it.
 - **Reason:** CHROMIQ-902 verified one WSL machine. Safari, Firefox, and real phones are unverified, and the bookmarklet is untested against sites with strict CSP.
 - **Acceptance criteria:**
   - The workbench is verified on current Safari, Firefox, and Chrome, and on a real phone.
@@ -733,7 +741,8 @@ without needing a domain.
 ### CHROMIQ-1007 — Feedback and changelog
 
 - **Priority:** P2
-- **Status:** BACKLOG
+- **Status:** DONE
+- **Closed:** `/feedback` is a real form rather than a mailto link, prefilled with the address that failed when it is reached from a failed load, and `/changelog` renders `CHANGELOG.md` so the published page cannot drift from the repository.
 - **User story:** As a user, I want to report a site that will not load without leaving the app.
 - **Acceptance criteria:**
   - A feedback route exists in the product, prefilled with the URL that failed where relevant.
@@ -745,10 +754,11 @@ without needing a domain.
 - **Added:** CHROMIQ-202 (light/dark theme pairs) and CHROMIQ-706 (URL design import).
 - **Added (scales, auto-fix, vision batch):** CHROMIQ-207, 208, 305, 606, 607. Shape panel "Reset" now resets shape tokens (one undoable change, lock-aware). Re-importing a CHROMIQ CSS export no longer warns about the derived scale variables.
 - **Added (builder redesign):** CHROMIQ-105, 209, 306, 307. The workbench light chrome now applies (its selector never matched before).
-- **Still intentionally open:** headless browser capture (702, needs a browser binary).
-- **In progress (production readiness):** 802 and 805 on self-hosted Postgres with reversible migrations under `migrations/`; 1001, 1002, 1003. 1004 is blocked on a contact address and a legal review.
-- **Verification run:** `npm run build` passes; `npm run start` serves `/` (landing) and `/workspace` with HTTP 200; private URL inspection is rejected with HTTP 400; restyle loads https://example.com and a `http://127.0.0.1` load shows an error with the controls disabled (browser check).
-- **Build footprint:** First Load JS: `/` ≈ 152 kB, `/workspace` ≈ 176 kB (shared ≈ 103 kB); 12 Google Fonts reduced to 3 upfront (the rest load on demand), which cuts several hundred kB of font payload from first paint.
+- **Closed since (production readiness):** 802 and 805 on self-hosted Postgres with reversible migrations under `migrations/`; 1001, 1002, 1003, 1005 and 1007.
+- **Still intentionally open:** headless browser capture (702, needs a browser binary in production).
+- **Partly open:** 1006 — Chromium and two emulated phone profiles pass; Safari, Firefox and a real handset are unverified and the README says so. 1004 is blocked on a legal review and a governing-law decision, neither of which is an engineering task.
+- **Verification run:** `npm run build` passes and 843 unit tests pass; `npm run start` serves `/`, `/workspace`, `/changelog` and `/feedback` with HTTP 200; private URL inspection is rejected with HTTP 400. Against a real Postgres: sign-up, first sync, autosave, a second browser opening the synced project, an aborted save showing the retry control and recovering, a rejected revision opening the conflict dialog with both resolutions landing the right revision; Core Web Vitals written from a real browser session; a feedback report stored with its URL and release.
+- **Build footprint:** First Load JS: `/workspace` ≈ 204 kB (shared ≈ 103 kB). The 176 kB in an earlier revision of this note was already out of date when it was written; cloud sync, the vitals reporter and the conflict dialog added about 4 kB between them.
 
 ## Definition of ready
 
