@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SafeFetchError, safeFetch } from "@/lib/safe-fetch";
-import { acquireSlot, clientKey, rateLimit } from "@/lib/rate-limit";
+import { acquireSlot } from "@/lib/rate-limit";
+import { clientKey } from "@/lib/server/http";
+import { rateLimit } from "@/lib/server/rate-limit-db";
 import {
   extractTitle,
   looksLikeSpa,
@@ -57,7 +59,10 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const wait = rateLimit("proxy", clientKey(request), RATE_LIMIT_PER_MIN);
+  // Shared across instances, so a serverless deployment enforces one quota
+  // rather than one per warm instance. Degrades to per-instance counting when
+  // the limiter is unreachable.
+  const wait = await rateLimit("proxy", clientKey(request), RATE_LIMIT_PER_MIN);
   if (wait)
     return NextResponse.json(
       { error: "Too many previews in a short time. Please wait a moment and try again." },

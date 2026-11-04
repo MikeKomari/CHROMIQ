@@ -1,16 +1,11 @@
-import type { NextRequest } from "next/server";
-
 // Best-effort, per-instance protection: state lives in this process's memory, so on
 // serverless platforms each warm instance keeps its own counters. It blunts casual
-// abuse; it is not a global quota.
+// abuse; it is not a global quota. Every route reaches this through
+// lib/server/rate-limit-db.ts, which prefers the shared limiter and falls back
+// here; nothing should import it directly.
 
 const MAX_TRACKED = 5000;
 const hits = new Map<string, { count: number; resetAt: number }>();
-
-export function clientKey(request: NextRequest) {
-  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  return forwarded || request.headers.get("x-real-ip")?.trim() || "unknown";
-}
 
 /** Fixed-window limiter. Returns seconds to wait when limited, else 0. */
 export function rateLimit(bucket: string, key: string, limit: number, windowMs = 60_000) {

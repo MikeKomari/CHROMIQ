@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SafeFetchError, safeFetch } from "@/lib/safe-fetch";
-import { acquireSlot, clientKey, rateLimit } from "@/lib/rate-limit";
+import { acquireSlot } from "@/lib/rate-limit";
+import { clientKey } from "@/lib/server/http";
+import { rateLimit } from "@/lib/server/rate-limit-db";
 import {
   collectInlineStyles,
   extractDesign,
@@ -92,7 +94,9 @@ export async function GET(request: NextRequest) {
       { status: 400 },
     );
   }
-  const wait = rateLimit("inspect", clientKey(request), 30);
+  // Shared across instances; see the proxy route for why the per-process
+  // counters were not enough.
+  const wait = await rateLimit("inspect", clientKey(request), 30);
   if (wait)
     return NextResponse.json(
       { error: "Too many requests. Please wait a moment and try again." },

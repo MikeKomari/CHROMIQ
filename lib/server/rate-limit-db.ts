@@ -33,6 +33,7 @@ export async function rateLimit(
          RETURNING count`,
       [bucket, subject, windowStart],
     );
+    maybePrune(windowMs);
     const count = row?.count ?? 1;
     if (count <= limit) return 0;
     const resetAt = windowStart.getTime() + windowMs;
@@ -41,6 +42,24 @@ export async function rateLimit(
     // Degrade to per-instance counting rather than failing open entirely.
     return memoryRateLimit(bucket, subject, limit, windowMs);
   }
+}
+
+/**
+ * Housekeeping on the write path, because there is no cron in this deployment.
+ *
+ * Without this, `rate_limits` grows by one row per subject per window for ever:
+ * a window that has closed can never be hit again, but nothing was deleting it.
+ * Pruning on roughly one write in two hundred keeps the table bounded while
+ * adding a statement to very few requests, and the delete is fire-and-forget
+ * so it cannot slow down or fail the request that triggered it.
+ */
+const PRUNE_ODDS = 0.005;
+
+function maybePrune(windowMs: number) {
+  if (Math.random() >= PRUNE_ODDS) return;
+  // Keep a few windows' worth of history: deleting the live window would hand
+  // every caller a fresh quota.
+  void pruneRateLimits(Math.max(10 * 60_000, windowMs * 3)).catch(() => {});
 }
 
 /**
