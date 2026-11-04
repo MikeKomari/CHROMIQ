@@ -147,6 +147,22 @@ export function Workspace() {
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  /*
+   * Pulled out of `layout` so the effect below can declare what it actually
+   * depends on. Listing `layout.narrowPanel` and friends in the dependency
+   * array looks equivalent and is not: the rule cannot see through the member
+   * expressions, so it asked for the whole `layout` object, which changes
+   * every render and would re-register the listener each time.
+   */
+  const {
+    narrowPanel,
+    panelOverlay,
+    dismissPanelOverlay,
+    narrowInspector,
+    inspectorDrawer,
+    closeInspectorDrawer,
+  } = layout;
+
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
@@ -170,13 +186,32 @@ export function Workspace() {
         else if (showAccount) setShowAccount(false);
         else if (showHelp) setShowHelp(false);
         else if (event.defaultPrevented) return;
-        else if (layout.narrowPanel && layout.panelOverlay) layout.dismissPanelOverlay();
-        else if (layout.narrowInspector && layout.inspectorDrawer) layout.closeInspectorDrawer();
+        else if (narrowPanel && panelOverlay) dismissPanelOverlay();
+        else if (narrowInspector && inspectorDrawer) closeInspectorDrawer();
       }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [showConflict, showCommand, showExport, showProjects, showSnapshots, showVersions, showImport, showInspect, showSettings, showAccount, showHelp, layout.narrowPanel, layout.panelOverlay, layout.dismissPanelOverlay, layout.narrowInspector, layout.inspectorDrawer, layout.closeInspectorDrawer]);
+  }, [
+    showConflict,
+    showCommand,
+    showExport,
+    setShowExport,
+    showProjects,
+    showSnapshots,
+    showVersions,
+    showImport,
+    showInspect,
+    showSettings,
+    showAccount,
+    showHelp,
+    narrowPanel,
+    panelOverlay,
+    dismissPanelOverlay,
+    narrowInspector,
+    inspectorDrawer,
+    closeInspectorDrawer,
+  ]);
   const selectStarter = (starter: (typeof starters)[number]) => {
     if (readOnly) return;
     updateTokens(starterAccents(starter));

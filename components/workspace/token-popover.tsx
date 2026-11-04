@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { ColorPicker } from "@/components/ui/color-picker";
 import { fontCatalog } from "@/data/workspace";
@@ -78,7 +78,17 @@ export function TokenPopover({
     ref.current?.focus({ preventScroll: true });
   }, [element]);
 
-  const place = () => {
+  /*
+   * Memoised on exactly what it reads: the element it anchors to and the
+   * container it stays inside. It was a plain function, which made the
+   * listener effect below depend on a new identity every render -- so the
+   * dependency had to be left out, and the lint rule was right to say so.
+   * Leaving it out is the dangerous half: the effect captures whichever
+   * `place` existed on the render it last ran on, so after the anchor
+   * changes the scroll and resize listeners keep positioning against the old
+   * one. `setPosition` is a setter and is stable; `ref` is a ref.
+   */
+  const place = useCallback(() => {
     const popover = ref.current;
     if (!popover || !element.isConnected) return;
     const box = container.getBoundingClientRect();
@@ -96,7 +106,7 @@ export function TokenPopover({
     setPosition((current) =>
       current && current.left === next.left && current.top === next.top ? current : next,
     );
-  };
+  }, [element, container]);
 
   // Runs after every render so edits, expanded pickers and layout shifts keep it anchored.
   useLayoutEffect(place);
@@ -112,7 +122,7 @@ export function TokenPopover({
       window.removeEventListener("resize", place);
       observer.disconnect();
     };
-  }, [element, frame, container]);
+  }, [element, frame, container, place]);
 
   const colors = matches.filter((match): match is ColorMatch => match.kind === "color");
   const radius = matches.find((match) => match.kind === "radius");
