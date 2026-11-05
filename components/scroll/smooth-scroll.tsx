@@ -28,9 +28,16 @@ export function SmoothScroll() {
         // small nudge glides on far longer than the input suggested and the
         // page feels like it is deciding where to stop on its own. A lerp
         // tracks the wheel closely and settles in proportion to how far it
-        // still has to go. 0.12 is smooth without the page sliding after the
-        // viewer has stopped asking it to.
-        lerp: 0.12,
+        // still has to go.
+        //
+        // Was 0.12, which settled a 600px flick in about 850ms. That is
+        // genuinely eased -- measured, not assumed -- but close enough to
+        // native that people reported the page as not feeling smooth at all.
+        // 0.08 takes about 1.3s for the same flick: clearly a glide, still
+        // short enough that the page stops roughly where the gesture asked.
+        // Lower it further for more float; much below 0.06 starts to feel
+        // like the page is deciding where to stop on its own.
+        lerp: 0.08,
         // Touch devices have their own momentum; doubling it feels broken.
         syncTouch: false,
         touchMultiplier: 1,

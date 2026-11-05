@@ -29,8 +29,9 @@ export default function TermsPage() {
           DESIGN.md output. It also includes a URL inspector and a website
           preview that fetch public pages on your behalf. See the{" "}
           <Link href="/privacy">Privacy</Link> page for how data is handled. The
-          source code is licensed separately under the MIT License in the
-          project repository; these terms apply to the hosted service.
+          source code is published for reading but is not open source: it
+          carries no licence, so all rights are reserved. These terms apply to
+          the hosted service.
         </p>
       </section>
 

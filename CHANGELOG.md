@@ -45,3 +45,7 @@ There are no tagged releases yet. This section summarizes what exists today.
 - Links inside the text of the privacy, terms, changelog and feedback pages are underlined. They had neither underline nor a distinct colour, so they were indistinguishable from the text around them.
 - The header navigation on those pages no longer pushes the page sideways on a narrow phone.
 - Controls behind the inspector drawer are inert on narrow layouts. The canvas toolbar stayed tabbable and present to a screen reader while invisible and untappable behind the open drawer.
+
+### Removed
+
+- The MIT licence. CHROMIQ is now all rights reserved: the source stays public to read, but carries no grant to copy, modify or redistribute. Not retroactive — anyone who took a copy under MIT keeps that grant for that version. See `docs/adr/0001-remove-the-mit-licence.md`.

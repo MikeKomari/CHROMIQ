@@ -369,6 +369,7 @@ export function Workspace() {
               canRedo={future.length > 0}
               setShowExport={setShowExport}
               setShowImport={setShowImport}
+              setShowInspect={setShowInspect}
               setShowSnapshots={setShowSnapshots}
               updateTokens={updateTokens}
               readOnly={readOnly}

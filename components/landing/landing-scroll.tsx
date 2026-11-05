@@ -90,7 +90,7 @@ export function LandingScroll() {
           <ScrollChapter id="reel" align="center">
             <Parallax distance={90}>
               <DemoReel
-                poster="/reel/chromiq-reel-poster.svg"
+                poster="/reel/chromiq-reel-poster.jpg"
                 sources={[
                   { src: "/reel/chromiq-reel.webm", type: "video/webm" },
                   { src: "/reel/chromiq-reel.mp4", type: "video/mp4" },

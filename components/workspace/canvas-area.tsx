@@ -49,6 +49,7 @@ export function CanvasArea({
   canRedo,
   setShowExport,
   setShowImport,
+  setShowInspect,
   setShowSnapshots,
   updateTokens,
   readOnly,
@@ -75,6 +76,7 @@ export function CanvasArea({
   canRedo: boolean;
   setShowExport: (show: boolean) => void;
   setShowImport: (show: boolean) => void;
+  setShowInspect: (show: boolean) => void;
   setShowSnapshots: (show: boolean) => void;
   updateTokens: TokenUpdate;
   readOnly: boolean;
@@ -237,6 +239,7 @@ export function CanvasArea({
         canRedo={canRedo}
         setShowExport={setShowExport}
         setShowImport={setShowImport}
+        setShowInspect={setShowInspect}
         setShowSnapshots={setShowSnapshots}
         inspectorOpen={inspectorOpen}
         toggleInspector={toggleInspector}

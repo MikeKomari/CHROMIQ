@@ -60,4 +60,15 @@ The URL inspector and website preview fetch third-party pages server-side. If yo
 
 ## License
 
-By contributing, you agree your contributions are licensed under the [MIT License](LICENSE).
+CHROMIQ is **all rights reserved**. There is no open-source licence: the code is
+public to read, not to copy, modify or redistribute. See
+[ADR-0001](docs/adr/0001-remove-the-mit-licence.md) for why.
+
+This affects contributions directly. Without a licence there is no automatic
+inbound grant, so by opening a pull request you give the project owner
+permission to use, modify and distribute your contribution as part of CHROMIQ,
+under whatever terms CHROMIQ is released under now or later. You keep the
+copyright in what you wrote.
+
+If you are not comfortable with that, please open an issue describing the change
+instead of sending code.

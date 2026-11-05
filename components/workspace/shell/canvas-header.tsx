@@ -9,6 +9,7 @@ import {
   Grid2X2,
   MousePointer2,
   PanelRight,
+  Link2,
   Redo2,
   SunMoon,
   Undo2,
@@ -42,6 +43,7 @@ export function CanvasHeader({
   canRedo,
   setShowExport,
   setShowImport,
+  setShowInspect,
   setShowSnapshots,
   inspectorOpen,
   toggleInspector,
@@ -62,6 +64,7 @@ export function CanvasHeader({
   canRedo: boolean;
   setShowExport: (show: boolean) => void;
   setShowImport: (show: boolean) => void;
+  setShowInspect: (show: boolean) => void;
   setShowSnapshots: (show: boolean) => void;
   inspectorOpen: boolean;
   toggleInspector: () => void;
@@ -117,6 +120,17 @@ export function CanvasHeader({
           </button>
           <button className="icon-button" onClick={() => setShowImport(true)} aria-label="Import tokens" title="Import tokens">
             <FileInput size={16} />
+          </button>
+          {/* The URL inspector had no control at all: the only way in was the
+              command palette, which you have to already know about. It sits
+              next to Import because it is the other way tokens get in. */}
+          <button
+            className="icon-button"
+            onClick={() => setShowInspect(true)}
+            aria-label="Import from a URL"
+            title="Import from a URL"
+          >
+            <Link2 size={16} />
           </button>
           <motion.button className="export-button" whileTap={{ scale: 0.97 }} onClick={() => setShowExport(true)}>
             <ArrowDownToLine size={15} /> Export
