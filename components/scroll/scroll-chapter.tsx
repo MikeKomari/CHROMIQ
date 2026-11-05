@@ -16,6 +16,7 @@ export function ScrollChapter({
   total,
   title,
   children,
+  media,
   align = "left",
   labelledBy,
 }: {
@@ -25,6 +26,8 @@ export function ScrollChapter({
   total?: number;
   title?: ReactNode;
   children?: ReactNode;
+  /** Optional figure shown beside the text. Order follows `align`. */
+  media?: ReactNode;
   align?: "left" | "center" | "right";
   labelledBy?: string;
 }) {
@@ -36,6 +39,7 @@ export function ScrollChapter({
       ref={ref}
       className="sc-chapter"
       data-align={align}
+      data-has-media={media ? "true" : undefined}
       // Omitted until the client is ready, so the no-JS render stays visible.
       data-in-view={ready ? (inView ? "true" : "false") : undefined}
       aria-labelledby={labelledBy}
@@ -55,6 +59,7 @@ export function ScrollChapter({
         {title}
         {children}
       </div>
+      {media && <div className="sc-chapter-media">{media}</div>}
     </section>
   );
 }

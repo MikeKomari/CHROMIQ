@@ -37,26 +37,64 @@ const STATEMENT =
  * Each chapter is one full viewport, in the order the page was planned:
  * the word, the reel, what CHROMIQ is, what it does, then the close.
  */
-const CHAPTERS = [
+const CHAPTERS: {
+  id: string;
+  title: string;
+  body: string;
+  /** Poster always; sources only where a clip exists. */
+  media: { poster: string; sources?: { src: string; type: string }[]; caption: string };
+}[] = [
   {
     id: "restyle",
     title: "Start from a real site",
     body: "Paste a public URL. CHROMIQ loads a scripts-off copy through its own proxy and lets you change type, colour, accent and radius on the live page, then hands you the override CSS.",
+    media: {
+      poster: "/reel/features/restyle.jpg",
+      caption: "The restyle view, ready for a public URL.",
+    },
+
   },
   {
     id: "tokens",
     title: "Tune the system, not the pixels",
     body: "One token model drives every surface: colour roles with light and dark pairs, type pairing, scales, radius, spacing, border, shadow and motion. Change a token and six preview surfaces move together.",
+    media: {
+      poster: "/reel/features/tokens.jpg",
+      sources: [
+        { src: "/reel/features/tokens.webm", type: "video/webm" },
+        { src: "/reel/features/tokens.mp4", type: "video/mp4" },
+      ],
+      caption: "One starter change moving through three preview surfaces.",
+    },
+
   },
   {
     id: "contrast",
     title: "Know it passes before you ship it",
     body: "Every semantic pair is graded against WCAG as you work, failures are named rather than hidden, and a one-click fix nudges the smallest value that clears the bar. Colour-vision simulation is one toggle away.",
+    media: {
+      poster: "/reel/features/contrast.jpg",
+      sources: [
+        { src: "/reel/features/contrast.webm", type: "video/webm" },
+        { src: "/reel/features/contrast.mp4", type: "video/mp4" },
+      ],
+      caption: "Contrast grading and the auto-fix, in the inspector.",
+    },
+
   },
   {
     id: "export",
     title: "Leave with code, not a screenshot",
     body: "Export CSS custom properties, Tailwind v4, shadcn/ui variables, W3C design tokens, a portable project file, or a written DESIGN.md. Failing tokens are flagged before anything downloads.",
+    media: {
+      poster: "/reel/features/export.jpg",
+      sources: [
+        { src: "/reel/features/export.webm", type: "video/webm" },
+        { src: "/reel/features/export.mp4", type: "video/mp4" },
+      ],
+      caption: "The export panel, on code generated from the live system.",
+    },
+
   },
 ];
 
@@ -120,6 +158,13 @@ export function LandingScroll() {
               // it scrolls rather than reading four identical left-aligned
               // blocks. Collapses back to left on narrow screens.
               align={i % 2 === 0 ? "left" : "right"}
+              media={
+                <DemoReel
+                  poster={chapter.media.poster}
+                  sources={chapter.media.sources}
+                  caption={chapter.media.caption}
+                />
+              }
               labelledBy={`${chapter.id}-title`}
               title={
                 <h2 className="ld-ch-title" id={`${chapter.id}-title`}>

@@ -342,7 +342,14 @@ button.panel-row:hover,
     display: none;
   }
 }
-@container canvas-bar (max-width: 679px) {
+/* The one-row layout needs about 740px of bar to hold the views, the device
+   switcher and the tools without collision. The centre track is
+   minmax(0, 1fr), so it shrinks happily while the device switcher inside it
+   does not -- below that width the centred content overflowed its track and
+   painted over the view switcher, leaving Restyle unclickable at a container
+   width of roughly 680-730px (around a 1280px window, which is a common
+   laptop). Stacking from 759px down keeps the collision band out of reach. */
+@container canvas-bar (max-width: 759px) {
   .canvas-header {
     grid-template-areas: "tabs devices" "actions actions";
     grid-template-columns: auto minmax(0, 1fr);

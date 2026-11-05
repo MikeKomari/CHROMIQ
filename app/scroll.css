@@ -59,6 +59,82 @@
   justify-content: flex-end;
 }
 
+/* A chapter with a figure becomes two columns: the text keeps its side and the
+   figure takes the space that was empty. The alternation is what makes the
+   pairing read as a rhythm rather than a list. */
+.sc-chapter[data-has-media="true"] {
+  --sc-media-gap: clamp(32px, 5vw, 72px);
+}
+
+.sc-chapter[data-has-media="true"] .sc-chapter-inner,
+.sc-chapter[data-has-media="true"] .sc-chapter-media {
+  grid-row: 1;
+}
+
+.sc-chapter[data-has-media="true"] {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: var(--sc-media-gap);
+  align-items: center;
+}
+
+.sc-chapter[data-align="left"][data-has-media="true"] .sc-chapter-inner {
+  grid-column: 1;
+  margin-inline: 0;
+  max-width: none;
+}
+
+.sc-chapter[data-align="left"][data-has-media="true"] .sc-chapter-media {
+  grid-column: 2;
+}
+
+/* Figure first, text second, so the text still sits on the right. */
+.sc-chapter[data-align="right"][data-has-media="true"] .sc-chapter-inner {
+  grid-column: 2;
+  margin-inline: 0;
+  max-width: none;
+}
+
+.sc-chapter[data-align="right"][data-has-media="true"] .sc-chapter-media {
+  grid-column: 1;
+}
+
+.sc-chapter-media {
+  min-width: 0;
+  transition:
+    opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sc-chapter[data-in-view="false"] .sc-chapter-media {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+.sc-chapter[data-in-view="true"] .sc-chapter-media {
+  opacity: 1;
+  transform: none;
+}
+
+/* Side by side needs real width. Below this the figure goes under the text,
+   in source order, and both run full width. */
+@media (max-width: 1000px) {
+  .sc-chapter[data-has-media="true"] {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: clamp(24px, 4vh, 40px);
+  }
+
+  .sc-chapter[data-has-media="true"] .sc-chapter-inner,
+  .sc-chapter[data-has-media="true"] .sc-chapter-media {
+    grid-column: 1;
+    grid-row: auto;
+    text-align: left;
+  }
+
+  .sc-chapter[data-align="right"][data-has-media="true"] .sc-index {
+    justify-content: flex-start;
+  }
+}
+
 /* Below the measure there is no room to sit on one side, and right-aligned
    body text is hard to read on a phone. Everything goes back to the left. */
 @media (max-width: 860px) {
