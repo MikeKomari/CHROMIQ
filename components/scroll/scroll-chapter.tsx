@@ -25,7 +25,7 @@ export function ScrollChapter({
   total?: number;
   title?: ReactNode;
   children?: ReactNode;
-  align?: "left" | "center";
+  align?: "left" | "center" | "right";
   labelledBy?: string;
 }) {
   const { ref, inView, ready } = useInView<HTMLElement>({ amount: 0.2 });

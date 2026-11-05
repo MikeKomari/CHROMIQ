@@ -38,6 +38,42 @@
   max-width: var(--sc-measure-narrow, 820px);
 }
 
+/* A left/right chapter takes half the measure and hugs its side, so a run of
+   them reads as a zig-zag instead of four identical blocks. The full measure
+   is kept for anything that does not opt in. */
+.sc-chapter[data-align="left"] .sc-chapter-inner,
+.sc-chapter[data-align="right"] .sc-chapter-inner {
+  max-width: var(--sc-measure-half, 640px);
+}
+
+.sc-chapter[data-align="left"] .sc-chapter-inner {
+  margin-inline: 0 auto;
+}
+
+.sc-chapter[data-align="right"] .sc-chapter-inner {
+  margin-inline: auto 0;
+  text-align: right;
+}
+
+.sc-chapter[data-align="right"] .sc-index {
+  justify-content: flex-end;
+}
+
+/* Below the measure there is no room to sit on one side, and right-aligned
+   body text is hard to read on a phone. Everything goes back to the left. */
+@media (max-width: 860px) {
+  .sc-chapter[data-align="left"] .sc-chapter-inner,
+  .sc-chapter[data-align="right"] .sc-chapter-inner {
+    max-width: var(--sc-measure, 1180px);
+    margin-inline: auto;
+    text-align: left;
+  }
+
+  .sc-chapter[data-align="right"] .sc-index {
+    justify-content: flex-start;
+  }
+}
+
 /* Chapter index, e.g. 03 — 05 */
 .sc-index {
   display: flex;

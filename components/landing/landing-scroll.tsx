@@ -82,7 +82,6 @@ export function LandingScroll() {
             </Link>
           }
           hint={<span>Scroll for more</span>}
-          note={<span>made by MikeKomari</span>}
         />
 
         <main id="main">
@@ -117,6 +116,10 @@ export function LandingScroll() {
               id={chapter.id}
               index={i + 1}
               total={CHAPTERS.length}
+              // Features alternate sides so the eye moves across the page as
+              // it scrolls rather than reading four identical left-aligned
+              // blocks. Collapses back to left on narrow screens.
+              align={i % 2 === 0 ? "left" : "right"}
               labelledBy={`${chapter.id}-title`}
               title={
                 <h2 className="ld-ch-title" id={`${chapter.id}-title`}>

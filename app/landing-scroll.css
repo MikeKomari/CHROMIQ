@@ -268,11 +268,39 @@
   background: var(--accent);
 }
 
+/* The one action on the page, so it is painted as a real button rather than a
+   translucent chip: accent fill, the same treatment the closing CTA uses. It
+   stays an anchor in the markup -- it navigates, so middle-click, open-in-new-
+   tab and "copy link" all have to keep working, which a <button> would break. */
 .landing-scroll .ld-sc-cta {
-  color: var(--text);
-  background: color-mix(in srgb, var(--panel) 80%, transparent);
-  border: 1px solid var(--line-strong);
-  backdrop-filter: blur(8px);
+  color: var(--accent-ink);
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  font-weight: 600;
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--accent) 35%, transparent);
+  transition:
+    filter 0.2s,
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.landing-scroll .ld-sc-cta:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.landing-scroll .ld-sc-cta:active {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-scroll .ld-sc-cta {
+    transition: none;
+  }
+  .landing-scroll .ld-sc-cta:hover {
+    transform: none;
+  }
 }
 
 .landing-scroll .ld-sc-mark {
