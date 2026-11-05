@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"cd /home/mike/prism && sed -n 100,230p lib/safe-fetch.ts; grep -n \\\"@import\\\\|import\\\" app/api/inspect/route.ts | head -20; ls tests; grep -c \\\"\\\" tests/*url-safety* 2>/dev/null\"}",
+  "error": "Exit code 2\n    }, remaining);\n    req.on(\"close\", () => clearTimeout(timer));\n    req.on(\"error\", (err) =>\n      reject(err instanceof SafeFetchError ? err : new SafeFetchError(\"failed\", err.message)),\n    );\n    req.end();\n  });\n}\n\nfunction decompressed(res: IncomingMessage): NodeJS.ReadableStream {\n  const encoding = String(res.headers[\"content-encoding\"] || \"\").trim().toLowerCase();\n  if (encoding === \"gzip\" || encoding === \"x-gzip\") return res.pipe(zlib.createGunzip());\n  if (encoding === \"...",
+  "timestamp": "2026-11-05T04:04:52.667Z",
+  "retry_count": 1
+}
