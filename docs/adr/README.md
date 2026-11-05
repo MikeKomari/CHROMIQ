@@ -31,6 +31,7 @@ supplying a reason after the fact.
 | [0018](0018-namespaced-tailwind-export.md) | Namespaced `--text-chromiq-*` in the Tailwind export, over Tailwind's own names | Accepted | 2026-10-21 |
 | [0019](0019-rename-to-chromiq.md) | Rename PRISM to CHROMIQ, over keeping a common word | Accepted | 2026-10-23 |
 | [0020](0020-low-glare-palette.md) | A low-glare palette with a High contrast switch, over maximum contrast by default | Accepted, palette later replaced | 2026-10-18 |
+| [0021](0021-remove-the-mit-licence.md) | No licence, all rights reserved, over keeping MIT | Accepted | 2026-11-05 |
 
 ## Writing a new one
 
