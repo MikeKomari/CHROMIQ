@@ -403,6 +403,14 @@ button:disabled {
   position: relative;
   flex: 1;
   display: flex;
+  /* The preview is a flex item here, so the default `stretch` sized it to this
+     frame's height. `.design-preview` is `overflow: hidden`, so anything taller
+     than the frame was clipped rather than scrolled -- and because the only
+     child then measured exactly the frame's height, `overflow: auto` below had
+     nothing to scroll. Taller surfaces simply lost their lower half, silently.
+     `flex-start` lets the preview take its content height so this frame
+     scrolls, which is what DESIGN.md means by the stage scrolling internally. */
+  align-items: flex-start;
   min-height: 0;
   border: 1px solid var(--line);
   border-radius: var(--radius-popover);
