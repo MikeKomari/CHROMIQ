@@ -6,9 +6,27 @@
 
 const STRIP_WITH_CONTENT = ["script", "iframe", "frame", "frameset", "object", "embed", "applet"];
 
+/**
+ * One tag's attributes, up to but not including its closing `>`.
+ *
+ * The naive `[^>]*` ends at any `>`, including one inside a quoted attribute
+ * value, which lets `<img src="a>b" onerror="...">` cut every matcher here
+ * short so the part after the quoted `>` is never inspected. Quoted runs are
+ * therefore matched whole.
+ *
+ * The catch-all class excludes `"` and `'`, so the three branches are disjoint
+ * on their first character and the group cannot backtrack. That matters: an
+ * ambiguous alternation under a star is a denial-of-service hole in a function
+ * whose entire input is hostile by definition.
+ */
+const ATTR_RUN = `(?:"[^"]*"|'[^']*'|[^<>"'])*`;
+
 function stripElements(html: string, tag: string) {
-  const pair = new RegExp(`<${tag}\\b[^>]*>[\\s\\S]*?<\\/${tag}\\s*>`, "gi");
-  const open = new RegExp(`<${tag}\\b[^>]*>?`, "gi");
+  const pair = new RegExp(`<${tag}\\b${ATTR_RUN}>[\\s\\S]*?<\\/${tag}\\s*>`, "gi");
+  // The loose second branch keeps an unbalanced quote (`<script src="/x.js`)
+  // and an unclosed tag being removed as before, rather than failing the
+  // strict match and surviving.
+  const open = new RegExp(`<${tag}\\b(?:${ATTR_RUN}>|[^<>]*>?)`, "gi");
   return html.replace(pair, "").replace(open, "");
 }
 
@@ -77,7 +95,13 @@ export function sanitizeHtml(rawHtml: string, baseUrl: string) {
       ? ""
       : tag,
   );
-  html = html.replace(/<[a-zA-Z][^<>]*>/g, cleanTag);
+  // Each tag is handed to cleanTag whole. ATTR_RUN explains the shape; the
+  // loose second branch is the fallback for an unbalanced quote, which would
+  // otherwise fail the strict match and pass through uninspected.
+  html = html.replace(
+    new RegExp(`<[a-zA-Z]${ATTR_RUN}>|<[a-zA-Z][^<>]*>`, "g"),
+    cleanTag,
+  );
 
   const injected =
     `<base href="${escapeAttr(baseUrl)}">` +

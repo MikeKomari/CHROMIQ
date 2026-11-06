@@ -112,6 +112,71 @@ describe("sanitizeHtml: things that must not survive", () => {
   });
 });
 
+describe("sanitizeHtml: a `>` inside a quoted attribute (CHROMIQ-1008)", () => {
+  /**
+   * Every matcher in this file used to find a tag with `[^>]*`, which ends at
+   * ANY `>` -- including one inside a quoted attribute value. One character in
+   * an attribute therefore cut the match short and everything after it went
+   * uninspected, so the filter was skippable at will. These pin each payload
+   * that got through.
+   */
+
+  it.each([
+    ["double-quoted src", `<img src="a>b" onerror="steal()">`],
+    ["double-quoted href", `<a href="x>y" onclick="steal()">hi</a>`],
+    ["double-quoted title on body", `<body title="a>b" onload="steal()">`],
+    ["single-quoted data attribute", `<div data-x='a>b' onmouseover='steal()'>z</div>`],
+    ["two quoted runs before the handler", `<p title="a>b" data-y="c>d" onfocus="steal()">z</p>`],
+  ])("still strips the handler after a quoted `>`: %s", (_name, payload) => {
+    const out = sanitizeHtml(`<body>${payload}</body>`, BASE);
+    expect(out).not.toMatch(/\son[a-z]+\s*=/i);
+    expect(out).not.toContain("steal()");
+  });
+
+  it("still neutralises a javascript: URL that follows a quoted `>`", () => {
+    const out = sanitizeHtml(`<body><a title="a>b" href="javascript:steal()">hi</a></body>`, BASE);
+    expect(out.toLowerCase()).not.toContain("javascript:");
+    expect(out).toContain('="#"');
+  });
+
+  it("still removes srcdoc that follows a quoted `>`", () => {
+    const out = sanitizeHtml(`<body><x-frame title="a>b" srcdoc="<p>x</p>"></x-frame></body>`, BASE);
+    expect(out).not.toMatch(/srcdoc/i);
+  });
+
+  it.each(["script", "iframe", "object", "embed"])(
+    "removes a %s element whose attribute carries a quoted `>`",
+    (tag) => {
+      const out = sanitizeHtml(`<body><${tag} title="a>b" src="/x"></${tag}></body>`, BASE);
+      expect(out.toLowerCase()).not.toContain(`<${tag}`);
+      // The old `[^>]*` cut at the quoted `>` and left the rest as loose text.
+      expect(out).not.toContain("src=");
+    },
+  );
+
+  it("keeps a legitimate attribute value containing `>` intact", () => {
+    const out = sanitizeHtml(`<body><div data-expr="a > b" class="k">z</div></body>`, BASE);
+    expect(out).toContain(`data-expr="a > b"`);
+    expect(out).toContain(`class="k"`);
+  });
+
+  it("still cleans a tag whose quote is never closed", () => {
+    // The strict branch cannot match this, so the loose branch has to catch it
+    // or an unbalanced quote becomes the new way around the filter.
+    const out = sanitizeHtml(`<body><img src="a onerror=steal()></body>`, BASE);
+    expect(out).not.toMatch(/\son[a-z]+\s*=/i);
+  });
+
+  it("stays linear on input shaped to force backtracking", () => {
+    // The quoted branches and the catch-all are disjoint on their first
+    // character for this reason; if that stops being true this takes seconds.
+    const hostile = `<a ${'"'.repeat(20_000)}`;
+    const started = performance.now();
+    sanitizeHtml(hostile, BASE);
+    expect(performance.now() - started).toBeLessThan(1000);
+  });
+});
+
 describe("sanitizeHtml: the injected header", () => {
   it("injects into an existing head", () => {
     const out = sanitizeHtml(`<html><head><title>t</title></head><body>x</body></html>`, BASE);

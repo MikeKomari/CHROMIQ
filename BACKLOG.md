@@ -750,6 +750,22 @@ without needing a domain.
   - A feedback route exists in the product, prefilled with the URL that failed where relevant.
   - A public changelog is published and updated on release.
 
+### CHROMIQ-1008 — Sanitizer skipped by a `>` in a quoted attribute
+
+- **Priority:** P1
+- **Status:** DONE
+- **Closed:** `lib/sanitize-html.ts` matched tags with `[^>]*`, which ends at any `>` — including one inside a quoted attribute value. `<img src="a>b" onerror="steal()">` therefore handed `cleanTag` only `<img src="a>`, and every handler, `javascript:` URL and `srcdoc` after the quoted `>` went uninspected. `stripElements` had the same blind spot, so a `<script>`/`<iframe>` opening tag could be left half-removed with its attributes loose in the document. Tag matching is now attribute-aware through one shared `ATTR_RUN`, with the old loose form kept as a fallback so an unbalanced quote is still cleaned rather than passing through.
+- **Reason:** The restyle proxy renders attacker-controlled HTML. The sanitizer is one of three independent controls — the others being the `sandbox` iframe without `allow-scripts` and the injected `script-src 'none'` CSP — and it was the only one not doing its job. Nothing was exploitable, because the other two hold and nothing in the frame can execute, but the file documented itself as defence in depth while being skippable by one character. The realistic failure is a later change adding `allow-scripts` to make the preview more faithful, which would turn this into live same-origin XSS over everything in `localStorage`.
+- **Scope:** `lib/sanitize-html.ts` tag matching in `stripElements` and the `cleanTag` pass; regression tests in `tests/unit/sanitize-html.test.ts`.
+- **Acceptance criteria:**
+  - A handler, `javascript:` URL or `srcdoc` placed after a quoted `>` is removed, in both quoting styles.
+  - An element stripped with its contents is removed whole when its attributes contain a quoted `>`, leaving no loose attribute text.
+  - A legitimate attribute value containing `>` (`data-expr="a > b"`) is preserved.
+  - A tag with an unbalanced quote is still cleaned.
+  - Tag matching stays linear on input shaped to force backtracking; an ambiguous alternation here would be a denial-of-service hole on hostile input.
+- **Verified:** 9 crafted payloads, 6 of which survived before, are all removed after. 7 of the 14 new tests fail against the previous implementation. 63 sanitizer tests pass; 20 KB of pathological input sanitizes in under 10 ms.
+- **Still open:** none. The `allow-scripts` decision is unchanged and documented in ADR-0011 — this restores the third control, it does not license relaxing the other two.
+
 ## Verified implementation notes
 
 - **Implemented in the local MVP:** CHROMIQ-101, 102, 103, 104, 201, 203, 204, 205, 206, 301, 302, 303, 304, 401, 402, 403, 404, 405, 501–503, 601–605, 701, 703, 801, 803, 804, 901, 902, 903, 904, 704, 705, 905, and 906.
