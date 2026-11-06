@@ -57,8 +57,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # `npx --yes playwright@... install` downloads the browser but runs the
+      # CLI from a throwaway cache, so the `playwright` module never lands in
+      # node_modules and the suite's `import("playwright")` probe fails -- it
+      # skipped all 10 tests in every run since this job was added. The module
+      # is installed here instead, and the browser is installed through that
+      # same copy so the two cannot be different versions. --no-save keeps it
+      # out of the lockfile: a developer machine still has no playwright, which
+      # is what lets `npm test` skip this suite rather than fail on it.
       - name: Install Playwright and Chromium
-        run: npx --yes playwright@1.49.1 install --with-deps chromium
+        run: |
+          npm install --no-save playwright@1.49.1
+          npx playwright install --with-deps chromium
 
       - name: Capture integration tests
         run: npx vitest run tests/integration --reporter=default --reporter=json --outputFile=/tmp/capture.json
